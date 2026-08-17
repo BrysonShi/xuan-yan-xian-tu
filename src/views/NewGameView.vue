@@ -122,26 +122,31 @@ function rollTalent() {
 const canCreate = computed(() => playerName.value.trim().length > 0);
 
 function handleCreate() {
-  if (!canCreate.value) return;
+  try {
+    if (!canCreate.value) return;
 
-  const player = playerStore.createPlayer(playerName.value.trim());
+    const player = playerStore.createPlayer(playerName.value.trim());
 
-  // 应用天赋
-  if (selectedTalent.value) {
-    player.spiritRoot = {
-      type: ['金', '木', '水', '火', '土'],
-      quality: selectedTalent.value.rarity === 'legendary' ? 5
-        : selectedTalent.value.rarity === 'epic' ? 4
-        : selectedTalent.value.rarity === 'rare' ? 3
-        : selectedTalent.value.rarity === 'cursed' ? 1
-        : 2,
-      multiplier: selectedTalent.value.mult,
-    };
-    playerStore.updatePlayer(player);
+    // 应用天赋
+    if (selectedTalent.value) {
+      player.spiritRoot = {
+        type: ['金', '木', '水', '火', '土'],
+        quality: selectedTalent.value.rarity === 'legendary' ? 5
+          : selectedTalent.value.rarity === 'epic' ? 4
+          : selectedTalent.value.rarity === 'rare' ? 3
+          : selectedTalent.value.rarity === 'cursed' ? 1
+          : 2,
+        multiplier: selectedTalent.value.mult,
+      };
+      playerStore.updatePlayer(player);
+    }
+
+    saveSystem.save(0, player);
+    router.push('/reality');
+  } catch (err) {
+    alert('创建角色失败: ' + err.message);
+    console.error('[NewGame] handleCreate error:', err);
   }
-
-  saveSystem.save(0, player);
-  router.push('/reality');
 }
 </script>
 
