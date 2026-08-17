@@ -122,12 +122,14 @@ function rollTalent() {
 const canCreate = computed(() => playerName.value.trim().length > 0);
 
 function handleCreate() {
+  alert('按钮被点击了! 名字: [' + playerName.value + '] canCreate=' + canCreate.value);
+  if (!canCreate.value) {
+    alert('canCreate 为 false，请先输入道号');
+    return;
+  }
   try {
-    if (!canCreate.value) return;
-
     const player = playerStore.createPlayer(playerName.value.trim());
 
-    // 应用天赋
     if (selectedTalent.value) {
       player.spiritRoot = {
         type: ['金', '木', '水', '火', '土'],
@@ -141,10 +143,11 @@ function handleCreate() {
       playerStore.updatePlayer(player);
     }
 
+    alert('即将保存并跳转...');
     saveSystem.save(0, player);
     router.push('/reality');
   } catch (err) {
-    alert('创建角色失败: ' + err.message);
+    alert('创建角色失败: ' + err.message + '\n' + err.stack);
     console.error('[NewGame] handleCreate error:', err);
   }
 }
