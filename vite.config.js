@@ -7,8 +7,8 @@ import { fileURLToPath, URL } from 'node:url';
  * @see https://vitejs.dev/config/
  */
 export default defineConfig({
-  // GitHub Pages 子路径部署，使用相对路径
-  base: './',
+  // GitHub Pages 子路径部署
+  base: '/xuan-yan-xian-tu/',
   plugins: [vue()],
   resolve: {
     alias: {
