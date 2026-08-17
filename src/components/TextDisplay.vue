@@ -12,6 +12,7 @@
 
 <script setup>
 import { ref, watch, nextTick, computed, onBeforeUnmount } from 'vue';
+import { audioManager } from '../utils/audioManager.js';
 
 const props = defineProps({
   /** 要展示的完整文本 */
@@ -111,6 +112,8 @@ function finishTyping() {
 function handleClick() {
   if (isTyping.value) {
     finishTyping();
+    // 播放跳过文字音效
+    try { audioManager.playTextSkip(); } catch {}
   }
   emit('click');
 }

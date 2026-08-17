@@ -32,6 +32,7 @@
 
 <script setup>
 import { ref, computed } from 'vue';
+import { audioManager } from '../utils/audioManager.js';
 
 const props = defineProps({
   options: { type: Array, default: () => [] },
@@ -46,6 +47,10 @@ let pressTimer = null;
 function handleSelect(opt) {
   if (props.disabled) return;
   if (!opt.enabled && opt.enabled !== undefined) return;
+
+  // 播放音效
+  try { audioManager.playClick(); } catch {}
+  setTimeout(() => { try { audioManager.playChoice(); } catch {} }, 80);
 
   selectedId.value = opt.id;
   emit('select', opt);

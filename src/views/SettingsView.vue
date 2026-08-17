@@ -42,9 +42,42 @@
         <div class="setting-item">
           <span class="setting-item__label">背景音乐</span>
           <label class="toggle">
-            <input type="checkbox" v-model="settings.bgmEnabled" />
+            <input type="checkbox" v-model="settings.bgmEnabled" @change="onBgmToggle" />
             <span class="toggle__track"></span>
           </label>
+        </div>
+        <div class="setting-item">
+          <span class="setting-item__label">BGM 音量</span>
+          <div class="setting-item__slider">
+            <input
+              type="range"
+              min="0" max="100" step="1"
+              :value="Math.round(settings.bgmVolume * 100)"
+              @input="onBgmVolumeInput($event)"
+              class="volume-slider"
+            />
+            <span class="volume-value font-num">{{ Math.round(settings.bgmVolume * 100) }}%</span>
+          </div>
+        </div>
+        <div class="setting-item">
+          <span class="setting-item__label">音效</span>
+          <label class="toggle">
+            <input type="checkbox" v-model="settings.sfxEnabled" @change="onSfxToggle" />
+            <span class="toggle__track"></span>
+          </label>
+        </div>
+        <div class="setting-item">
+          <span class="setting-item__label">SFX 音量</span>
+          <div class="setting-item__slider">
+            <input
+              type="range"
+              min="0" max="100" step="1"
+              :value="Math.round(settings.sfxVolume * 100)"
+              @input="onSfxVolumeInput($event)"
+              class="volume-slider"
+            />
+            <span class="volume-value font-num">{{ Math.round(settings.sfxVolume * 100) }}%</span>
+          </div>
         </div>
         <div class="setting-item">
           <span class="setting-item__label">震动反馈</span>
@@ -129,6 +162,7 @@
 <script setup>
 import { reactive, ref, onMounted } from 'vue';
 import { saveSystem } from '../engines/saveSystem.js';
+import { audioManager } from '../utils/audioManager.js';
 import Modal from '../components/Modal.vue';
 
 const speedOptions = [
@@ -149,6 +183,9 @@ const settings = reactive({
   autoSave: true,
   vibration: true,
   bgmEnabled: true,
+  sfxEnabled: true,
+  bgmVolume: 0.7,
+  sfxVolume: 0.8,
 });
 
 const saveSlots = ref([]);
@@ -183,6 +220,27 @@ onMounted(() => {
 function handleSaveSettings() {
   saveSystem.updateSettings({ ...settings });
   showToast('设置已保存');
+}
+
+// ─── 音频控制回调 ───
+function onBgmToggle() {
+  try { audioManager.toggleBgm(settings.bgmEnabled); } catch {}
+}
+
+function onSfxToggle() {
+  try { audioManager.toggleSfx(settings.sfxEnabled); } catch {}
+}
+
+function onBgmVolumeInput(e) {
+  settings.bgmVolume = parseInt(e.target.value) / 100;
+  try { audioManager.setBgmVolume(settings.bgmVolume); } catch {}
+}
+
+function onSfxVolumeInput(e) {
+  settings.sfxVolume = parseInt(e.target.value) / 100;
+  try { audioManager.setSfxVolume(settings.sfxVolume); } catch {}
+  // 播放一个试听音效确认 SFX 正常
+  try { audioManager.playClick(); } catch {}
 }
 
 function handleSave(slotIndex) {
@@ -477,5 +535,55 @@ function handleSlotAction(slot) {
 .save-slot__btn {
   padding: 8px 12px;
   min-height: 32px;
+}
+
+/* 音量滑块 */
+.setting-item__slider {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.volume-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100px;
+  height: 4px;
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.1);
+  outline: none;
+  cursor: pointer;
+}
+
+.volume-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--c-gold);
+  border: 2px solid var(--c-gold-light);
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.volume-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.volume-slider::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--c-gold);
+  border: 2px solid var(--c-gold-light);
+  cursor: pointer;
+}
+
+.volume-value {
+  font-size: var(--fs-xs);
+  color: var(--c-text-dim);
+  min-width: 32px;
+  text-align: right;
 }
 </style>
