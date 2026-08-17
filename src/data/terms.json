@@ -1,0 +1,310 @@
+[
+  {
+    "id": "TRT-W01",
+    "name": "身强体壮",
+    "rarity": "common",
+    "category": "physique",
+    "description": "自幼劳作，体魄强健，气血较常人更为充盈。",
+    "effects": [
+      { "type": "percent_add", "target": "maxHp", "value": 10 }
+    ],
+    "conflicts": [],
+    "upgradeTo": null,
+    "upgradeCondition": null,
+    "source": "模拟结算 / 成就解锁",
+    "tags": ["body", "hp"]
+  },
+  {
+    "id": "TRT-W02",
+    "name": "粗通文墨",
+    "rarity": "common",
+    "category": "attribute",
+    "description": "幼年读过几年私塾，虽算不上才高八斗，但至少能看懂功法玉简。",
+    "effects": [
+      { "type": "flat_add", "target": "comprehension", "value": 2 }
+    ],
+    "conflicts": [],
+    "upgradeTo": null,
+    "upgradeCondition": null,
+    "source": "模拟结算",
+    "tags": ["mind", "comprehension"]
+  },
+  {
+    "id": "TRT-W03",
+    "name": "耳聪目明",
+    "rarity": "common",
+    "category": "attribute",
+    "description": "感官敏锐，能察觉旁人难以感知的细微灵气波动。",
+    "effects": [
+      { "type": "flat_add", "target": "spirit", "value": 2 }
+    ],
+    "conflicts": [],
+    "upgradeTo": null,
+    "upgradeCondition": null,
+    "source": "模拟结算",
+    "tags": ["mind", "spirit"]
+  },
+  {
+    "id": "TRT-W04",
+    "name": "谨小慎微",
+    "rarity": "common",
+    "category": "fortune",
+    "description": "行事小心谨慎，轻易不涉险地。虽难有大机缘，却也少了无妄之灾。",
+    "effects": [
+      { "type": "trigger", "target": "death_dodge", "value": 0.05, "triggerChance": 0.05 }
+    ],
+    "conflicts": [],
+    "upgradeTo": null,
+    "upgradeCondition": null,
+    "source": "模拟结算",
+    "tags": ["fortune", "survival"]
+  },
+  {
+    "id": "TRT-W05",
+    "name": "吃苦耐劳",
+    "rarity": "common",
+    "category": "physique",
+    "description": "长年累月的苦修让你习惯了艰难困苦，在恶劣环境中也能维持修炼进度。",
+    "effects": [
+      { "type": "passive", "target": "cultivationSpeed", "value": 0.1, "condition": "environment < 0.8" }
+    ],
+    "conflicts": [],
+    "upgradeTo": null,
+    "upgradeCondition": null,
+    "source": "模拟结算",
+    "tags": ["body", "cultivation"]
+  },
+  {
+    "id": "TRT-W06",
+    "name": "面善心和",
+    "rarity": "common",
+    "category": "attribute",
+    "description": "你天生一副和善面相，让人不由自主想要亲近。",
+    "effects": [
+      { "type": "flat_add", "target": "charisma", "value": 2 }
+    ],
+    "conflicts": [],
+    "upgradeTo": null,
+    "upgradeCondition": null,
+    "source": "模拟结算",
+    "tags": ["social", "charisma"]
+  },
+  {
+    "id": "TRT-W07",
+    "name": "灵石命脉",
+    "rarity": "common",
+    "category": "background",
+    "description": "家中虽非富贵，但多少有些积蓄，初入修仙界时不至于囊中羞涩。",
+    "effects": [
+      { "type": "flat_add", "target": "spiritStones", "value": 10 }
+    ],
+    "conflicts": [],
+    "upgradeTo": null,
+    "upgradeCondition": null,
+    "source": "模拟结算 / 成就解锁",
+    "tags": ["background", "economy"]
+  },
+  {
+    "id": "TRT-W08",
+    "name": "筋骨柔韧",
+    "rarity": "common",
+    "category": "physique",
+    "description": "经脉柔韧性异于常人，修炼某些特定功法时效率更高。",
+    "effects": [
+      { "type": "passive", "target": "cultivationSpeed", "value": 0.1, "condition": "technique_type == body" }
+    ],
+    "conflicts": [],
+    "upgradeTo": null,
+    "upgradeCondition": null,
+    "source": "模拟结算",
+    "tags": ["body", "cultivation"]
+  },
+  {
+    "id": "TRT-W09",
+    "name": "过目小成",
+    "rarity": "common",
+    "category": "special",
+    "description": "记性还算不错，看过的功法玉简能记住个七八成。",
+    "effects": [
+      { "type": "passive", "target": "cultivationSpeed", "value": 0.05 }
+    ],
+    "conflicts": [],
+    "upgradeTo": null,
+    "upgradeCondition": null,
+    "source": "模拟结算",
+    "tags": ["mind", "technique"]
+  },
+  {
+    "id": "TRT-W10",
+    "name": "随遇而安",
+    "rarity": "common",
+    "category": "fortune",
+    "description": "心境平和，不以物喜不以己悲。心魔侵扰的概率略有降低。",
+    "effects": [
+      { "type": "passive", "target": "event_weight:disaster", "value": -0.05 }
+    ],
+    "conflicts": [],
+    "upgradeTo": null,
+    "upgradeCondition": null,
+    "source": "模拟结算",
+    "tags": ["mind", "fortune"]
+  },
+  {
+    "id": "TRT-B01",
+    "name": "心外无物",
+    "rarity": "rare",
+    "category": "physique",
+    "description": "入定如老僧坐忘，心无杂念。修炼时灵气吸纳效率大幅提升。",
+    "effects": [
+      { "type": "passive", "target": "cultivationSpeed", "value": 0.2 },
+      { "type": "flat_add", "target": "breakthroughRate", "value": 0.08 }
+    ],
+    "conflicts": [],
+    "upgradeTo": null,
+    "upgradeCondition": null,
+    "source": "模拟结算 / 成就解锁",
+    "tags": ["mind", "cultivation"]
+  },
+  {
+    "id": "TRT-B02",
+    "name": "剑道入门",
+    "rarity": "rare",
+    "category": "skill",
+    "description": "天生对剑器有超乎常人的感知，剑类法器的威力远超同阶。",
+    "effects": [
+      { "type": "percent_add", "target": "attackPercent", "value": 20 },
+      { "type": "passive", "target": "cultivationSpeed", "value": 0.15, "condition": "technique_type == sword" }
+    ],
+    "conflicts": [],
+    "upgradeTo": null,
+    "upgradeCondition": null,
+    "source": "模拟结算",
+    "tags": ["sword", "combat"]
+  },
+  {
+    "id": "TRT-B03",
+    "name": "丹道初窥",
+    "rarity": "rare",
+    "category": "skill",
+    "description": "对草木灵药有天然的亲和力，炼丹时能敏锐感知药性变化。",
+    "effects": [
+      { "type": "flat_add", "target": "alchemySuccess", "value": 0.15 }
+    ],
+    "conflicts": [],
+    "upgradeTo": null,
+    "upgradeCondition": null,
+    "source": "模拟结算 / 特殊事件",
+    "tags": ["alchemy", "skill"]
+  },
+  {
+    "id": "TRT-B04",
+    "name": "大器晚成",
+    "rarity": "rare",
+    "category": "special",
+    "description": "年少时修炼平平无奇，但根基打得极为扎实。越到后期越强。",
+    "effects": [
+      { "type": "condition_mod", "target": "cultivationSpeed", "value": -0.1, "condition": "realmLevel < 4" },
+      { "type": "condition_mod", "target": "cultivationSpeed", "value": 0.25, "condition": "realmLevel >= 4" }
+    ],
+    "conflicts": [],
+    "upgradeTo": null,
+    "upgradeCondition": null,
+    "source": "模拟结算",
+    "tags": ["cultivation", "late_game"]
+  },
+  {
+    "id": "TRT-B05",
+    "name": "铜皮铁骨",
+    "rarity": "rare",
+    "category": "physique",
+    "description": "肉身坚韧如铁，寻常法术难以造成致命伤害。",
+    "effects": [
+      { "type": "percent_add", "target": "defensePercent", "value": 15 },
+      { "type": "trigger", "target": "death_dodge", "value": 0.1, "triggerChance": 0.1 }
+    ],
+    "conflicts": [],
+    "upgradeTo": null,
+    "upgradeCondition": null,
+    "source": "模拟结算",
+    "tags": ["body", "defense", "survival"]
+  },
+  {
+    "id": "TRT-B06",
+    "name": "趋吉避凶",
+    "rarity": "rare",
+    "category": "fortune",
+    "description": "直觉异常敏锐，总能在危险降临前感知到蛛丝马迹。",
+    "effects": [
+      { "type": "trigger", "target": "death_dodge", "value": 0.1, "triggerChance": 0.1 },
+      { "type": "passive", "target": "adventureRate", "value": 0.05 }
+    ],
+    "conflicts": ["TRT-W04"],
+    "upgradeTo": null,
+    "upgradeCondition": null,
+    "source": "模拟结算 / 成就解锁",
+    "tags": ["fortune", "survival"]
+  },
+  {
+    "id": "TRT-B07",
+    "name": "草木亲和",
+    "rarity": "rare",
+    "category": "skill",
+    "description": "灵草灵木对你有天然的亲近感。采摘灵药时品质更高。",
+    "effects": [
+      { "type": "passive", "target": "gatherQuality", "value": 1 }
+    ],
+    "conflicts": [],
+    "upgradeTo": null,
+    "upgradeCondition": null,
+    "source": "模拟结算",
+    "tags": ["herb", "skill"]
+  },
+  {
+    "id": "TRT-B08",
+    "name": "灵觉敏锐",
+    "rarity": "rare",
+    "category": "attribute",
+    "description": "神识感知范围远超同阶修士，能发现隐藏的灵脉和暗藏的危机。",
+    "effects": [
+      { "type": "flat_add", "target": "spirit", "value": 5 },
+      { "type": "passive", "target": "hiddenEventRate", "value": 0.15 }
+    ],
+    "conflicts": [],
+    "upgradeTo": null,
+    "upgradeCondition": null,
+    "source": "模拟结算",
+    "tags": ["mind", "spirit", "perception"]
+  },
+  {
+    "id": "TRT-B09",
+    "name": "广结善缘",
+    "rarity": "rare",
+    "category": "background",
+    "description": "你天生善于交际，在修仙界中游刃有余。",
+    "effects": [
+      { "type": "flat_add", "target": "npcAffinityBonus", "value": 10 },
+      { "type": "percent_add", "target": "tradeBonus", "value": 10 }
+    ],
+    "conflicts": [],
+    "upgradeTo": null,
+    "upgradeCondition": null,
+    "source": "模拟结算",
+    "tags": ["social", "background"]
+  },
+  {
+    "id": "TRT-B10",
+    "name": "坚韧道心",
+    "rarity": "rare",
+    "category": "special",
+    "description": "意志坚定，心魔难侵。修炼路上无论遇到什么挫折都不会轻言放弃。",
+    "effects": [
+      { "type": "passive", "target": "event_weight:disaster", "value": -0.1 },
+      { "type": "flat_add", "target": "breakthroughRate", "value": 0.05 }
+    ],
+    "conflicts": [],
+    "upgradeTo": null,
+    "upgradeCondition": null,
+    "source": "模拟结算",
+    "tags": ["mind", "cultivation", "survival"]
+  }
+]

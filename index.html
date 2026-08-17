@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>玄衍仙途：命运模拟器</title>
+  <meta name="description" content="文字修仙模拟器 - 以命运为盘，以选择为子" />
+</head>
+<body>
+  <!-- GitHub Pages SPA 路由恢复脚本 -->
+  <script>
+    (function () {
+      var l = window.location;
+      // 从 404.html 重定向过来的路径恢复
+      var redirect = l.search.match(/(^|&)\//);
+      if (redirect) {
+        var newPath = l.search.split('/').slice(1).join('/').replace(/~and~/g, '&');
+        // 处理 hash 部分
+        var hashIdx = newPath.indexOf('#');
+        var hash = '';
+        if (hashIdx !== -1) {
+          hash = newPath.substring(hashIdx);
+          newPath = newPath.substring(0, hashIdx);
+        }
+        window.history.replaceState(null, null, '/' + newPath + hash);
+      }
+    })();
+  </script>
+  <div id="app"></div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

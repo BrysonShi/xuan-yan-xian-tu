@@ -1,0 +1,22 @@
+[
+  { "id": "ITM-D01", "name": "回春丹", "type": "丹药", "grade": "黄阶下品", "description": "恢复少量气血", "effect": { "hpRestore": 30 }, "price": 5 },
+  { "id": "ITM-D02", "name": "聚灵丹", "type": "丹药", "grade": "黄阶下品", "description": "恢复少量灵力", "effect": { "mpRestore": 20 }, "price": 5 },
+  { "id": "ITM-D03", "name": "清心丹", "type": "丹药", "grade": "黄阶中品", "description": "稳定心神，驱除心魔", "effect": { "clearMind": true }, "price": 15 },
+  { "id": "ITM-D04", "name": "突破丹", "type": "丹药", "grade": "黄阶上品", "description": "辅助突破瓶颈", "effect": { "breakthroughBonus": 0.2 }, "price": 30 },
+  { "id": "ITM-D05", "name": "大还丹", "type": "丹药", "grade": "玄阶下品", "description": "大量恢复气血", "effect": { "hpRestore": 80 }, "price": 50 },
+  { "id": "ITM-H01", "name": "聚灵草", "type": "灵药", "grade": "黄阶下品", "description": "常见灵药，可用于炼丹", "effect": {}, "price": 3 },
+  { "id": "ITM-H02", "name": "血灵花", "type": "灵药", "grade": "黄阶中品", "description": "蕴含气血之力的灵花", "effect": {}, "price": 8 },
+  { "id": "ITM-H03", "name": "紫灵芝", "type": "灵药", "grade": "黄阶上品", "description": "珍贵灵药，可炼制高级丹药", "effect": {}, "price": 20 },
+  { "id": "ITM-W01", "name": "铁剑", "type": "法器", "grade": "黄阶下品", "description": "普通铁剑，聊胜于无", "effect": { "attack": 5 }, "price": 10 },
+  { "id": "ITM-W02", "name": "青锋剑", "type": "法器", "grade": "黄阶上品", "description": "品质不错的剑器", "effect": { "attack": 15 }, "price": 40 },
+  { "id": "ITM-W03", "name": "碧水剑", "type": "法器", "grade": "玄阶下品", "description": "蕴含水灵之力的宝剑", "effect": { "attack": 30, "element": "水" }, "price": 80 },
+  { "id": "ITM-A01", "name": "布衣", "type": "防具", "grade": "黄阶下品", "description": "普通衣物", "effect": { "defense": 3 }, "price": 5 },
+  { "id": "ITM-A02", "name": "灵纹袍", "type": "防具", "grade": "黄阶中品", "description": "刻有灵纹的防护法袍", "effect": { "defense": 10 }, "price": 25 },
+  { "id": "ITM-M01", "name": "妖核", "type": "材料", "grade": "黄阶下品", "description": "低阶妖兽的妖核，可出售或炼化", "effect": {}, "price": 8 },
+  { "id": "ITM-M02", "name": "灵铁矿", "type": "材料", "grade": "黄阶中品", "description": "可用于炼器的矿石", "effect": {}, "price": 12 },
+  { "id": "ITM-M03", "name": "符纸", "type": "材料", "grade": "黄阶下品", "description": "画符用的灵纸", "effect": {}, "price": 2 },
+  { "id": "ITM-S01", "name": "储物袋", "type": "特殊", "grade": "黄阶下品", "description": "常见的储物容器", "effect": {}, "price": 20 },
+  { "id": "ITM-S02", "name": "传音符", "type": "特殊", "grade": "黄阶下品", "description": "一次性的通讯符箓", "effect": {}, "price": 3 },
+  { "id": "ITM-T01", "name": "秘境令牌", "type": "特殊", "grade": "玄阶下品", "description": "进入某处秘境的凭证", "effect": {}, "price": 100 },
+  { "id": "ITM-T02", "name": "藏经阁令牌", "type": "特殊", "grade": "黄阶上品", "description": "可进入藏经阁深层区域", "effect": {}, "price": 50 }
+]

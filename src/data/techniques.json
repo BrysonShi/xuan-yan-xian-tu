@@ -1,0 +1,17 @@
+[
+  { "id": "GJ-T01", "name": "长春功", "type": "吐纳功法", "grade": "黄阶下品", "element": "木", "speedMultiplier": 1.0, "specialEffect": null, "source": "入门时宗门统一发放", "description": "青云宗外门弟子的标配功法，胜在平稳无险。" },
+  { "id": "GJ-T02", "name": "烈阳功", "type": "吐纳功法", "grade": "黄阶上品", "element": "火", "speedMultiplier": 1.3, "specialEffect": "火属性法术威力+10%", "source": "宗门藏经阁兑换(50贡献)", "description": "修炼时体内如烈火焚烧，进境颇快。" },
+  { "id": "GJ-T03", "name": "小衍水决", "type": "吐纳功法", "grade": "玄阶下品", "element": "水", "speedMultiplier": 1.5, "specialEffect": "灵力恢复+15%", "source": "奇遇/仙人传承", "description": "上古大能功法的简化版，灵气运转精妙。" },
+  { "id": "GJ-T04", "name": "青木长生诀", "type": "吐纳功法", "grade": "玄阶中品", "element": "木", "speedMultiplier": 1.6, "specialEffect": "气血恢复+20%,寿命+5年", "source": "秘境发现", "description": "青云宗开派祖师的成名功法，延年益寿。" },
+  { "id": "GJ-T05", "name": "暗影遁术", "type": "吐纳功法", "grade": "玄阶下品", "element": "暗", "speedMultiplier": 1.2, "specialEffect": "隐匿+25%,夜间战力+10%", "source": "师门任务奖励", "description": "隐匿功法，保命逃跑的绝佳手段。" },
+  { "id": "GJ-A01", "name": "火球术", "type": "攻伐法术", "grade": "黄阶下品", "element": "火", "mpCost": 5, "damage": 20, "specialEffect": null, "source": "藏经阁免费", "description": "每个修士都会的入门法术。" },
+  { "id": "GJ-A02", "name": "冰锥术", "type": "攻伐法术", "grade": "黄阶中品", "element": "水", "mpCost": 8, "damage": 30, "specialEffect": "15%冰冻", "source": "藏经阁兑换(20贡献)", "description": "凝聚水汽化为冰锥射出。" },
+  { "id": "GJ-A03", "name": "掌心雷", "type": "攻伐法术", "grade": "黄阶上品", "element": "雷", "mpCost": 12, "damage": 45, "specialEffect": "克制邪祟+20%", "source": "藏经阁兑换(40贡献)", "description": "基础雷法，对邪祟有天然克制。" },
+  { "id": "GJ-A04", "name": "青锋剑诀", "type": "攻伐法术", "grade": "玄阶下品", "element": "金", "mpCost": 15, "damage": 55, "specialEffect": "30%破甲", "source": "奇遇/坊市(80灵石)", "description": "剑诀九式，炼气期只能领悟前三式。" },
+  { "id": "GJ-A05", "name": "一剑破万法", "type": "攻伐法术", "grade": "玄阶中品", "element": "金", "mpCost": 25, "damage": 80, "specialEffect": "30%无视防御", "source": "剑心通明组合解锁", "description": "剑意与道心合一的极致体现。" },
+  { "id": "GJ-L01", "name": "铁布衫", "type": "炼体功法", "grade": "黄阶中品", "element": null, "speedMultiplier": 1.0, "specialEffect": "物理伤害-8%", "source": "藏经阁兑换(15贡献)", "description": "以灵气淬炼皮肤，使之坚韧如铁。" },
+  { "id": "GJ-L02", "name": "金刚不坏体", "type": "炼体功法", "grade": "玄阶下品", "element": null, "speedMultiplier": 1.0, "specialEffect": "气血<30%时防御翻倍", "source": "奇遇/秘境", "description": "佛门炼体秘术残篇。" },
+  { "id": "GJ-F01", "name": "敛息决", "type": "辅助秘术", "grade": "黄阶中品", "element": null, "speedMultiplier": 1.0, "specialEffect": "隐匿修为境界", "source": "藏经阁兑换(10贡献)", "description": "将气息收敛，让他人无法判断真实修为。" },
+  { "id": "GJ-F02", "name": "天眼通（残）", "type": "辅助秘术", "grade": "玄阶下品", "element": null, "speedMultiplier": 1.0, "specialEffect": "神识感知+50%", "source": "仙人传承", "description": "上古大神通残篇，可看穿低阶隐匿术。" },
+  { "id": "GJ-S01", "name": "百草丹经", "type": "旁门技艺", "grade": "黄阶上品", "element": null, "speedMultiplier": 1.0, "specialEffect": "炼丹成功率+10%", "source": "藏经阁兑换(30贡献)", "description": "炼丹基础功法，记载数十种常见丹方。" }
+]

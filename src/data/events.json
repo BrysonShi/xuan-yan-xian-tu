@@ -1,0 +1,680 @@
+[
+  {
+    "id": "EVT-T01",
+    "name": "闭关苦修",
+    "category": "cultivation",
+    "scene": "simulation",
+    "triggerConditions": [
+      { "type": "attribute_check", "field": "realmLevel", "operator": ">=", "value": 0 },
+      { "type": "attribute_check", "field": "realmLevel", "operator": "<=", "value": 8 }
+    ],
+    "weight": 30,
+    "weightModifiers": [],
+    "description": "你在洞府中盘膝而坐，灵气如游丝般缓缓渗入经脉。日复一日的枯坐让你的关节僵硬如铁，但丹田中的灵力却在不知不觉间壮大了一分。修道之路，本就是与寂寞为伴。",
+    "options": [
+      {
+        "id": "A",
+        "text": "全力苦修",
+        "description": "不惜损耗气血，拼命吸纳灵气",
+        "successRate": 0.7,
+        "successResult": {
+          "resultText": "你咬紧牙关，将灵气疯狂纳入体内。经脉传来阵阵刺痛，但丹田中灵力确实壮大了不少。",
+          "cultivationChange": "15%",
+          "hpChange": -10
+        },
+        "failureResult": {
+          "resultText": "灵气吸纳过猛，经脉隐隐作痛，气血翻涌。这次苦修不但没有成效，反而伤了根基。",
+          "hpChange": -20
+        }
+      },
+      {
+        "id": "B",
+        "text": "稳扎稳打",
+        "description": "按部就班，循序渐进",
+        "successRate": 0.95,
+        "successResult": {
+          "resultText": "灵气缓缓流转，如涓涓细流汇入丹田。虽不惊艳，但根基愈发扎实。",
+          "cultivationChange": "8%"
+        }
+      },
+      {
+        "id": "C",
+        "text": "参悟道法",
+        "description": "不急于提升修为，转而参悟修炼本质",
+        "successRate": 0.5,
+        "successResult": {
+          "resultText": "灵光一闪间，你似乎触碰到了某种玄妙的道理。这种感悟将惠及日后的修行。",
+          "cultivationChange": "5%",
+          "attributeChanges": { "comprehension": 2 }
+        },
+        "failureResult": {
+          "resultText": "枯坐半日，脑海中一片混沌，什么也没悟出来。不过也不算毫无收获——至少心境平和了些。"
+        }
+      }
+    ],
+    "maxTriggerCount": null,
+    "cooldown": 1,
+    "isUnique": false
+  },
+  {
+    "id": "EVT-T02",
+    "name": "瓶颈感悟",
+    "category": "cultivation",
+    "scene": "simulation",
+    "triggerConditions": [
+      { "type": "compound", "logic": "OR", "children": [
+        { "type": "attribute_check", "field": "realmLevel", "operator": "==", "value": 2 },
+        { "type": "attribute_check", "field": "realmLevel", "operator": "==", "value": 5 },
+        { "type": "attribute_check", "field": "realmLevel", "operator": "==", "value": 8 }
+      ]}
+    ],
+    "weight": 20,
+    "weightModifiers": [],
+    "description": "修炼至紧要关头，你感到灵力在经脉中横冲直撞，犹如被一堵无形的墙壁挡住。这便是境界瓶颈——无数修士终其一生卡在某一层，再也无法寸进。你闭目沉思，寻找突破的契机。",
+    "options": [
+      {
+        "id": "A",
+        "text": "强行冲关",
+        "description": "凝聚全部灵力，一击破壁",
+        "successRate": 0.4,
+        "successResult": {
+          "resultText": "灵力如潮水般涌向那层无形的壁障！轰然一声，壁障碎裂，你感到前所未有的畅快！",
+          "cultivationChange": "10%",
+          "setFlags": { "broke_through": true }
+        },
+        "failureResult": {
+          "resultText": "壁障纹丝不动，你耗尽了大半灵力。经脉中隐隐作痛，这次冲击代价不小。",
+          "mpChange": -30,
+          "hpChange": -15
+        }
+      },
+      {
+        "id": "B",
+        "text": "以悟破关",
+        "description": "放下执念，静心感悟天道",
+        "successRate": 0.5,
+        "successResult": {
+          "resultText": "你放空思绪，感受天地间灵气流动的韵律。忽然间，瓶颈如冰雪消融——你悟了。",
+          "cultivationChange": "3%",
+          "attributeChanges": { "comprehension": 1 }
+        },
+        "failureResult": {
+          "resultText": "苦思良久，依然毫无头绪。但这份坚持也并非毫无意义，修为略有精进。",
+          "cultivationChange": "3%"
+        }
+      },
+      {
+        "id": "C",
+        "text": "暂且搁置",
+        "description": "先做其他事，也许机缘到了自然通",
+        "successRate": 1.0,
+        "successResult": {
+          "resultText": "你决定暂时放下执念，出门走走。也许不经意间，机缘就会降临。",
+          "cultivationChange": "2%",
+          "attributeChanges": { "luck": 1 }
+        }
+      }
+    ],
+    "maxTriggerCount": 3,
+    "isUnique": false
+  },
+  {
+    "id": "EVT-T03",
+    "name": "走火入魔",
+    "category": "disaster",
+    "scene": "simulation",
+    "triggerConditions": [
+      { "type": "attribute_check", "field": "realmLevel", "operator": ">=", "value": 3 }
+    ],
+    "weight": 5,
+    "weightModifiers": [
+      {
+        "condition": { "type": "attribute_check", "field": "hp", "operator": "<=", "value": 30 },
+        "multiplier": 3.0
+      }
+    ],
+    "description": "灵力突然失控！一股暴虐的灵气在你经脉中横冲直撞，犹如万蚁噬骨。你七窍渗出血丝，意识在清醒与疯狂之间摇摆。若不能及时压制，轻则经脉寸断，重则万劫不复。",
+    "options": [
+      {
+        "id": "A",
+        "text": "强行压制",
+        "description": "凭借意志力强行镇压暴走灵气",
+        "successRate": 0.4,
+        "successResult": {
+          "resultText": "你咬紧牙关，以惊人的意志力将暴走的灵气一点点压回正轨。浑身湿透，但总算保住了根基。",
+          "hpChange": -25,
+          "cultivationChange": "-5%"
+        },
+        "failureResult": {
+          "resultText": "灵气彻底失控！经脉中传来撕裂般的剧痛，你喷出一口鲜血……",
+          "hpChange": -50,
+          "cultivationChange": "-20%",
+          "triggerDeath": true,
+          "deathCause": "走火入魔，经脉寸断"
+        }
+      },
+      {
+        "id": "B",
+        "text": "散功保命",
+        "description": "主动散去部分修为，保全性命",
+        "successRate": 0.9,
+        "successResult": {
+          "resultText": "你忍痛散去三成修为，暴走的灵气随之平息。虽然损失惨重，但至少保住了性命。",
+          "cultivationChange": "-30%"
+        }
+      },
+      {
+        "id": "C",
+        "text": "服用清心丹",
+        "description": "若有清心丹可稳定心神",
+        "visibleCondition": { "type": "item_check", "field": "inventory", "operator": "contains", "value": "ITM-D03" },
+        "successRate": 0.85,
+        "successResult": {
+          "resultText": "清心丹入腹，一股清凉之意涌上心头，暴走的灵气逐渐平息。",
+          "hpChange": -10,
+          "itemsLost": [{ "itemId": "ITM-D03", "quantity": 1 }]
+        }
+      }
+    ],
+    "maxTriggerCount": null,
+    "cooldown": 5,
+    "isUnique": false
+  },
+  {
+    "id": "EVT-T04",
+    "name": "灵气潮汐",
+    "category": "adventure",
+    "scene": "simulation",
+    "triggerConditions": [
+      { "type": "attribute_check", "field": "attributes.luck", "operator": ">=", "value": 30 }
+    ],
+    "weight": 3,
+    "weightModifiers": [],
+    "description": "天地灵气忽然暴涨！你感到周身毛孔都在贪婪地吸纳灵气，修炼速度竟比平日快了数倍。这是百年难遇的灵气潮汐——灵气浓郁之时，修炼事半功倍，但同时也引来了山中妖兽的躁动。",
+    "options": [
+      {
+        "id": "A",
+        "text": "趁机苦修",
+        "description": "不浪费每一息，疯狂吸纳灵气",
+        "successRate": 0.9,
+        "successResult": {
+          "resultText": "你盘膝而坐，贪婪地吸纳着浓郁灵气。丹田如大海般翻涌，修为暴涨！",
+          "cultivationChange": "25%"
+        }
+      },
+      {
+        "id": "B",
+        "text": "稳固根基",
+        "description": "利用灵气淬炼经脉",
+        "successRate": 0.9,
+        "successResult": {
+          "resultText": "灵气潮汐中，你的经脉得到了前所未有的淬炼，根基更加牢固。",
+          "attributeChanges": { "strength": 1 }
+        }
+      },
+      {
+        "id": "C",
+        "text": "外出探索",
+        "description": "灵气潮汐往往伴随异象，也许有机缘",
+        "successRate": 0.6,
+        "successResult": {
+          "resultText": "你在灵气潮汐中感受到了一处灵脉的波动，循迹而去，竟发现了一处隐秘的灵药园！",
+          "itemsGained": [{ "itemId": "ITM-H01", "quantity": 3 }],
+          "attributeChanges": { "luck": 1 }
+        },
+        "failureResult": {
+          "resultText": "灵气潮汐引来了妖兽，你被一头暴怒的妖兽追击，狼狈逃回洞府。",
+          "hpChange": -20
+        }
+      }
+    ],
+    "maxTriggerCount": null,
+    "cooldown": 10,
+    "isUnique": false
+  },
+  {
+    "id": "EVT-T05",
+    "name": "功法抉择",
+    "category": "cultivation",
+    "scene": "simulation",
+    "triggerConditions": [
+      { "type": "attribute_check", "field": "realmLevel", "operator": ">=", "value": 4 }
+    ],
+    "weight": 10,
+    "weightModifiers": [],
+    "description": "修炼日久，你渐渐感觉到入门时修炼的功法有些力不从心。是时候换一部更好的功法了——但这意味着放弃此前打下的根基，从头开始适应新的灵气运转路线。这一步，将决定你未来的道途走向。",
+    "options": [
+      {
+        "id": "A",
+        "text": "继续修炼旧功法",
+        "description": "虽不出色但根基扎实",
+        "successRate": 1.0,
+        "successResult": {
+          "resultText": "你思虑再三，决定继续走这条路。虽然慢了些，但每一步都踏实。",
+          "cultivationChange": "5%"
+        }
+      },
+      {
+        "id": "B",
+        "text": "转修宗门功法",
+        "description": "前往藏经阁选取玄阶功法",
+        "successRate": 0.75,
+        "successResult": {
+          "resultText": "你在藏经阁中找到一部玄阶功法，灵气运转路线精妙绝伦，修炼速度大幅提升！",
+          "cultivationChange": "5%",
+          "techniquesGained": ["GJ-T02"]
+        },
+        "failureResult": {
+          "resultText": "新功法的灵气运转路线与你之前的根基冲突，适应失败。你不得不花费大量时间调整。",
+          "cultivationChange": "-10%"
+        }
+      },
+      {
+        "id": "C",
+        "text": "自创功法",
+        "description": "根据对天道的感悟，尝试自创",
+        "successRate": 0.3,
+        "visibleCondition": { "type": "attribute_check", "field": "attributes.comprehension", "operator": ">=", "value": 30 },
+        "successResult": {
+          "resultText": "你灵光乍现，将多年感悟融入功法之中，竟真的创出了一部独属于你的修炼法门！",
+          "attributeChanges": { "comprehension": 3 },
+          "cultivationChange": "10%"
+        },
+        "failureResult": {
+          "resultText": "自创功法失败，灵气反噬。你咳出一口血，修为受损。",
+          "hpChange": -10,
+          "cultivationChange": "-15%"
+        }
+      }
+    ],
+    "maxTriggerCount": 1,
+    "isUnique": true
+  },
+  {
+    "id": "EVT-Q01",
+    "name": "山洞秘藏",
+    "category": "adventure",
+    "scene": "simulation",
+    "triggerConditions": [
+      { "type": "attribute_check", "field": "realmLevel", "operator": ">=", "value": 0 }
+    ],
+    "weight": 12,
+    "weightModifiers": [
+      {
+        "condition": { "type": "attribute_check", "field": "attributes.luck", "operator": ">=", "value": 25 },
+        "multiplier": 1.5
+      }
+    ],
+    "description": "采药途中，你意外发现一处隐蔽的山洞。洞口被藤蔓遮掩，若非被绊了一跤，绝难发现。洞内石壁上刻满了模糊的符文，中央摆着一个落满灰尘的储物袋。看形制，像是某位前辈修士的遗物。",
+    "options": [
+      {
+        "id": "A",
+        "text": "直接打开储物袋",
+        "description": "迫不及待查看宝物",
+        "successRate": 0.5,
+        "successResult": {
+          "resultText": "储物袋中竟有不少好东西！你找到了几枚灵石和一些修炼材料。",
+          "resourceChanges": { "spiritStones": 12 }
+        },
+        "failureResult": {
+          "resultText": "储物袋上的禁制突然发动！一道灵力冲击击中你的手臂。",
+          "hpChange": -20
+        }
+      },
+      {
+        "id": "B",
+        "text": "先研究符文",
+        "description": "谨慎为上，先破解禁制",
+        "successRate": 0.6,
+        "successResult": {
+          "resultText": "你仔细研究石壁上的符文，成功破解了储物袋的禁制。里面灵石、丹药应有尽有！",
+          "resourceChanges": { "spiritStones": 15 },
+          "itemsGained": [{ "itemId": "ITM-D01", "quantity": 2 }]
+        },
+        "failureResult": {
+          "resultText": "符文太过古老晦涩，你只破解了一部分。储物袋中只取出了几枚灵石。",
+          "resourceChanges": { "spiritStones": 5 }
+        }
+      },
+      {
+        "id": "C",
+        "text": "原路返回报告宗门",
+        "description": "上交宗门处置",
+        "successRate": 1.0,
+        "successResult": {
+          "resultText": "你将发现上报宗门，赵长老对你的忠心颇为满意，赏了你一些贡献点。",
+          "resourceChanges": { "contribution": 8 }
+        }
+      }
+    ],
+    "maxTriggerCount": null,
+    "cooldown": 8,
+    "isUnique": false
+  },
+  {
+    "id": "EVT-Q02",
+    "name": "上古遗迹",
+    "category": "adventure",
+    "scene": "simulation",
+    "triggerConditions": [
+      { "type": "attribute_check", "field": "realmLevel", "operator": ">=", "value": 3 },
+      { "type": "attribute_check", "field": "attributes.luck", "operator": ">=", "value": 35 }
+    ],
+    "weight": 5,
+    "weightModifiers": [],
+    "description": "一座被岁月侵蚀的石殿从山腹中显露出来。殿门上刻着你无法辨认的古老文字，散发着幽微灵光。空气中弥漫着一股远古的气息，仿佛打开这扇门，就能窥见上古修仙界的辉煌。但殿门周围的累累白骨，无声诉说着此处的凶险。",
+    "options": [
+      {
+        "id": "A",
+        "text": "闯入遗迹",
+        "description": "富贵险中求！",
+        "successRate": 0.4,
+        "successResult": {
+          "resultText": "你小心翼翼地穿过殿门，在石殿深处发现了一部功法残卷和一些珍贵的材料！",
+          "attributeChanges": { "comprehension": 2 },
+          "resourceChanges": { "spiritStones": 20 }
+        },
+        "failureResult": {
+          "resultText": "殿内的守卫傀儡突然激活！你被一道灵力光束击中，勉强逃出。",
+          "hpChange": -35,
+          "mpChange": -30
+        }
+      },
+      {
+        "id": "B",
+        "text": "谨慎探查",
+        "description": "先在周围搜集线索",
+        "successRate": 0.7,
+        "successResult": {
+          "resultText": "你在遗迹外围找到了一些散落的灵石和丹药，还画下了遗迹入口的地图。",
+          "resourceChanges": { "spiritStones": 10 },
+          "itemsGained": [{ "itemId": "ITM-D01", "quantity": 1 }]
+        }
+      },
+      {
+        "id": "C",
+        "text": "标记位置离开",
+        "description": "实力不足，日后再来",
+        "successRate": 1.0,
+        "successResult": {
+          "resultText": "你在心中记下了这个位置。等实力足够时再来探索。",
+          "setFlags": { "ruin_location_found": true }
+        }
+      }
+    ],
+    "maxTriggerCount": 1,
+    "isUnique": true
+  },
+  {
+    "id": "EVT-S01",
+    "name": "陈墨邀约",
+    "category": "social",
+    "scene": "simulation",
+    "triggerConditions": [
+      { "type": "attribute_check", "field": "realmLevel", "operator": ">=", "value": 1 }
+    ],
+    "weight": 15,
+    "weightModifiers": [],
+    "description": "陈墨匆匆赶来，脸上带着几分兴奋：'师兄，我打听到坊市今日有一批新到的灵药，价格比平日便宜不少。要不要一起去看看？顺便路上还能切磋一二。'",
+    "options": [
+      {
+        "id": "A",
+        "text": "欣然同往",
+        "description": "正好也需要补充些物资",
+        "successRate": 0.85,
+        "successResult": {
+          "resultText": "你和陈墨一同前往坊市，不仅买到了物美价廉的灵药，路上还切磋了一番，颇有收获。",
+          "resourceChanges": { "spiritStones": -5 },
+          "itemsGained": [{ "itemId": "ITM-H01", "quantity": 2 }],
+          "relationshipChanges": [{ "npcId": "chenmo", "affinity": 10 }]
+        },
+        "failureResult": {
+          "resultText": "坊市的灵药品质一般，你花了些灵石但没买到什么好东西。不过和陈墨聊了一路，心情不错。",
+          "resourceChanges": { "spiritStones": -5 },
+          "relationshipChanges": [{ "npcId": "chenmo", "affinity": 5 }]
+        }
+      },
+      {
+        "id": "B",
+        "text": "婉言谢绝",
+        "description": "今天想专心修炼",
+        "successRate": 1.0,
+        "successResult": {
+          "resultText": "你婉拒了陈墨的邀请，继续潜心修炼。陈墨虽然有些失望，但表示理解。",
+          "cultivationChange": "5%",
+          "relationshipChanges": [{ "npcId": "chenmo", "affinity": -3 }]
+        }
+      }
+    ],
+    "maxTriggerCount": null,
+    "cooldown": 3,
+    "isUnique": false
+  },
+  {
+    "id": "EVT-C01",
+    "name": "妖兽袭击",
+    "category": "combat",
+    "scene": "simulation",
+    "triggerConditions": [
+      { "type": "attribute_check", "field": "realmLevel", "operator": ">=", "value": 1 }
+    ],
+    "weight": 15,
+    "weightModifiers": [
+      {
+        "condition": { "type": "attribute_check", "field": "attributes.luck", "operator": "<", "value": 15 },
+        "multiplier": 2.0
+      }
+    ],
+    "description": "外出途中，一头体型硕大的灰狼妖突然从灌木丛中窜出！它浑身散发着淡淡的妖气，赤红的双眼死死盯着你，显然已经锁定猎物。",
+    "options": [
+      {
+        "id": "A",
+        "text": "拔剑迎战",
+        "description": "以攻伐之术斩杀妖兽",
+        "successRate": 0.6,
+        "successResult": {
+          "resultText": "你凝聚灵力一剑斩出，灰狼妖惨叫一声倒地。你从它体内取出了妖核。",
+          "hpChange": -15,
+          "itemsGained": [{ "itemId": "ITM-M01", "quantity": 1 }],
+          "resourceChanges": { "spiritStones": 5 }
+        },
+        "failureResult": {
+          "resultText": "灰狼妖速度极快，你被它抓伤了手臂，不得不狼狈撤退。",
+          "hpChange": -30
+        }
+      },
+      {
+        "id": "B",
+        "text": "施展法术远程攻击",
+        "description": "保持距离，以法术消耗它",
+        "successRate": 0.55,
+        "successResult": {
+          "resultText": "你凝聚灵力发出一道火球，正中灰狼妖。它挣扎了几下便不再动弹。",
+          "mpChange": -15,
+          "itemsGained": [{ "itemId": "ITM-M01", "quantity": 1 }]
+        },
+        "failureResult": {
+          "resultText": "法术被灰狼妖灵巧避开，它趁机扑上来咬了你一口。你不得不释放灵力护体将它震退。",
+          "hpChange": -20,
+          "mpChange": -10
+        }
+      },
+      {
+        "id": "C",
+        "text": "转身逃跑",
+        "description": "保命要紧",
+        "successRate": 0.7,
+        "successResult": {
+          "resultText": "你运转身法，甩开了灰狼妖的追击，安全脱身。",
+          "attributeChanges": { "agility": 1 }
+        },
+        "failureResult": {
+          "resultText": "灰狼妖紧追不舍，你虽然跑掉了，但身上被划了好几道伤口。",
+          "hpChange": -15
+        }
+      }
+    ],
+    "maxTriggerCount": null,
+    "cooldown": 5,
+    "isUnique": false
+  },
+  {
+    "id": "EVT-T06",
+    "name": "丹房值守",
+    "category": "social",
+    "scene": "simulation",
+    "triggerConditions": [
+      { "type": "attribute_check", "field": "realmLevel", "operator": ">=", "value": 1 }
+    ],
+    "weight": 12,
+    "weightModifiers": [],
+    "description": "赵长老命你去丹房值守三天三夜，看护炉中丹药的火候。丹房内药香弥漫，炉火映红了半边石壁。老李头在一旁打盹，偶尔翻个身嘟囔几句。这差事虽无聊，但近水楼台……",
+    "options": [
+      {
+        "id": "A",
+        "text": "偷学炼丹手法",
+        "description": "趁机观察老李头的炼丹技艺",
+        "successRate": 0.4,
+        "successResult": {
+          "resultText": "你偷偷观察老李头的手法，记下了一些炼丹诀窍。这可能会对你日后的炼丹之路有所帮助。",
+          "setFlags": { "alchemy_intro": true }
+        },
+        "failureResult": {
+          "resultText": "老李头不知何时醒了，狠狠瞪了你一眼。'小兔崽子，偷学手艺？' 你被扣了一些贡献点。",
+          "resourceChanges": { "contribution": -5 }
+        }
+      },
+      {
+        "id": "B",
+        "text": "老实值守",
+        "description": "尽职尽责完成差事",
+        "successRate": 1.0,
+        "successResult": {
+          "resultText": "你恪尽职守，三天三夜不曾懈怠。赵长老对你的表现颇为满意。",
+          "resourceChanges": { "contribution": 3 }
+        }
+      },
+      {
+        "id": "C",
+        "text": "偷拿丹药",
+        "description": "趁无人注意，顺走一枚废丹",
+        "successRate": 0.6,
+        "successResult": {
+          "resultText": "你趁老李头熟睡，悄悄拿了一枚废丹。虽然是废丹，但其中残留的药力对你仍有价值。",
+          "itemsGained": [{ "itemId": "ITM-D02", "quantity": 1 }]
+        },
+        "failureResult": {
+          "resultText": "你刚伸手就被老李头抓了个正着！'好大的胆子！' 你被狠狠训斥一番，还扣了大量贡献点。",
+          "resourceChanges": { "contribution": -15 }
+        }
+      }
+    ],
+    "maxTriggerCount": null,
+    "cooldown": 5,
+    "isUnique": false
+  },
+  {
+    "id": "EVT-T07",
+    "name": "深夜顿悟",
+    "category": "cultivation",
+    "scene": "simulation",
+    "triggerConditions": [
+      { "type": "attribute_check", "field": "realmLevel", "operator": ">=", "value": 3 },
+      { "type": "attribute_check", "field": "attributes.comprehension", "operator": ">=", "value": 25 }
+    ],
+    "weight": 5,
+    "weightModifiers": [
+      {
+        "condition": { "type": "attribute_check", "field": "attributes.comprehension", "operator": ">=", "value": 40 },
+        "multiplier": 2.0
+      }
+    ],
+    "description": "月明星稀，你独坐山崖之上。一阵清风拂过，带来远处瀑布的水声。忽然间，你心中灵光一闪——天地万物运转的规律，似乎与体内灵气的流转暗合……这种玄之又玄的感觉稍纵即逝，你必须立刻抓住它！",
+    "options": [
+      {
+        "id": "A",
+        "text": "立刻闭关参悟",
+        "description": "趁感悟尚在，立即入定",
+        "successRate": 0.6,
+        "successResult": {
+          "resultText": "你立刻盘膝入定，灵气如潮水般涌入体内。这次顿悟让你的修为大幅提升，心境也更加澄明。",
+          "cultivationChange": "20%",
+          "attributeChanges": { "comprehension": 1 }
+        },
+        "failureResult": {
+          "resultText": "你努力想要抓住那份感悟，但它如指间流沙，最终消散无踪。",
+          "cultivationChange": "3%"
+        }
+      },
+      {
+        "id": "B",
+        "text": "顺其自然",
+        "description": "不强求，让感悟自然沉淀",
+        "successRate": 1.0,
+        "successResult": {
+          "resultText": "你放松心情，任由那份感悟在心中慢慢沉淀。虽然进境不如强行参悟那般快，但根基更加稳固。",
+          "cultivationChange": "8%"
+        }
+      }
+    ],
+    "maxTriggerCount": null,
+    "cooldown": 10,
+    "isUnique": false
+  },
+  {
+    "id": "EVT-T09",
+    "name": "心魔侵扰",
+    "category": "disaster",
+    "scene": "simulation",
+    "triggerConditions": [
+      { "type": "attribute_check", "field": "realmLevel", "operator": ">=", "value": 5 }
+    ],
+    "weight": 8,
+    "weightModifiers": [
+      {
+        "condition": { "type": "attribute_check", "field": "attributes.comprehension", "operator": "<", "value": 20 },
+        "multiplier": 1.5
+      }
+    ],
+    "description": "打坐之际，脑海中忽然浮现出无数画面：同门的嘲笑、师父失望的眼神、遥不可及的长生大道……一个阴冷的声音在耳边低语：'你资质平庸，再怎么努力也不过是蝼蚁……不如放弃吧。'心魔趁虚而入，正在侵蚀你的道心。",
+    "options": [
+      {
+        "id": "A",
+        "text": "坚守道心",
+        "description": "我命由我不由天！",
+        "successRate": 0.5,
+        "successResult": {
+          "resultText": "'我命由我不由天！'你在心中怒吼，道心坚如磐石。心魔的幻象如泡沫般碎裂。",
+          "cultivationChange": "10%"
+        },
+        "failureResult": {
+          "resultText": "心魔的力量太过强大，你的道心出现了裂痕。修炼效率短期内大幅下降。",
+          "cultivationChange": "-10%"
+        }
+      },
+      {
+        "id": "B",
+        "text": "求教赵长老",
+        "description": "向师长求助",
+        "successRate": 0.85,
+        "successResult": {
+          "resultText": "赵长老听闻后，传授你一段定心诀。在他的引导下，心魔渐渐退去。",
+          "cultivationChange": "3%"
+        }
+      },
+      {
+        "id": "C",
+        "text": "放任心魔",
+        "description": "也许心魔说的对……",
+        "successRate": 1.0,
+        "successResult": {
+          "resultText": "你放弃了抵抗，心魔趁虚而入。一股阴暗的力量涌入体内，灵力暴涨，但心境大幅跌落。",
+          "cultivationChange": "5%"
+        }
+      }
+    ],
+    "maxTriggerCount": null,
+    "cooldown": 8,
+    "isUnique": false
+  }
+]

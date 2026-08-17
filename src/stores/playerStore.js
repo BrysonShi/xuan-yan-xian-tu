@@ -1,0 +1,192 @@
+/**
+ * Pinia 玩家状态管理
+ * @module stores/playerStore
+ */
+
+import { defineStore } from 'pinia';
+import { shallowRef, triggerRef, computed } from 'vue';
+import { createNewPlayer, REALM_TABLE } from '../models/player.js';
+import { deepClone } from '../utils/helpers.js';
+
+export const usePlayerStore = defineStore('player', () => {
+  // ─── 响应式状态 ───
+
+  /** 玩家数据（使用shallowRef避免深层响应式风暴） */
+  const playerData = shallowRef(null);
+
+  /** 是否已加载存档 */
+  const isLoaded = shallowRef(false);
+
+  // ─── 计算属性 ───
+
+  /** 当前境界名称 */
+  const realmName = computed(() => playerData.value?.realm || '无');
+
+  /** 修为百分比 */
+  const cultivationPercent = computed(() => {
+    if (!playerData.value) return 0;
+    const { cultivation, maxCultivation } = playerData.value;
+    return maxCultivation > 0 ? Math.min(100, Math.round((cultivation / maxCultivation) * 100)) : 0;
+  });
+
+  /** 气血百分比 */
+  const hpPercent = computed(() => {
+    if (!playerData.value) return 0;
+    const { hp, maxHp } = playerData.value;
+    return maxHp > 0 ? Math.round((hp / maxHp) * 100) : 0;
+  });
+
+  /** 灵力百分比 */
+  const mpPercent = computed(() => {
+    if (!playerData.value) return 0;
+    const { mp, maxMp } = playerData.value;
+    return maxMp > 0 ? Math.round((mp / maxMp) * 100) : 0;
+  });
+
+  /** 已装备词条列表 */
+  const equippedTerms = computed(() => {
+    if (!playerData.value) return [];
+    return playerData.value.slots
+      .filter(s => s.termId && !s.locked)
+      .map(s => s.termId);
+  });
+
+  // ─── 操作方法 ───
+
+  /**
+   * 创建新角色并设置到store
+   * @param {string} name - 角色名
+   * @param {object} [options] - 自定义选项
+   */
+  function createPlayer(name, options) {
+    const newPlayer = createNewPlayer(name, options);
+    playerData.value = newPlayer;
+    isLoaded.value = true;
+    return newPlayer;
+  }
+
+  /**
+   * 从存档加载角色数据
+   * @param {object} data - 存档中的玩家数据
+   */
+  function loadFromSave(data) {
+    playerData.value = deepClone(data);
+    isLoaded.value = true;
+  }
+
+  /**
+   * 批量更新玩家数据（避免响应式风暴）
+   * @param {Function} updater - 更新函数，接收原始数据对象
+   */
+  function batchUpdate(updater) {
+    if (!playerData.value) return;
+    const raw = deepClone(playerData.value);
+    updater(raw);
+    raw.updatedAt = Date.now();
+    playerData.value = raw;
+  }
+
+  /**
+   * 更新单个属性
+   * @param {string} path - 属性路径
+   * @param {any} value - 新值
+   */
+  function updateField(path, value) {
+    batchUpdate(player => {
+      const keys = path.split('.');
+      let current = player;
+      for (let i = 0; i < keys.length - 1; i++) {
+        current = current[keys[i]];
+        if (!current) return;
+      }
+      current[keys[keys.length - 1]] = value;
+    });
+  }
+
+  /**
+   * 装备词条到指定槽位
+   * @param {number} slotIndex - 槽位索引
+   * @param {string} termId - 词条ID
+   * @returns {boolean} 是否成功
+   */
+  function equipTerm(slotIndex, termId) {
+    let success = false;
+    batchUpdate(player => {
+      const slot = player.slots[slotIndex];
+      if (!slot || slot.locked) return;
+      // 卸下旧词条
+      if (slot.termId) {
+        // 旧词条回到待装备状态（仍在collectedTerms中）
+      }
+      slot.termId = termId;
+      success = true;
+    });
+    return success;
+  }
+
+  /**
+   * 卸下槽位词条
+   * @param {number} slotIndex - 槽位索引
+   */
+  function unequipTerm(slotIndex) {
+    batchUpdate(player => {
+      const slot = player.slots[slotIndex];
+      if (slot && !slot.locked) {
+        slot.termId = null;
+      }
+    });
+  }
+
+  /**
+   * 增加/减少资源
+   * @param {string} resourceKey - 资源key
+   * @param {number} amount - 变化量（正数增加，负数减少）
+   */
+  function modifyResource(resourceKey, amount) {
+    batchUpdate(player => {
+      if (player.resources[resourceKey] !== undefined) {
+        player.resources[resourceKey] = Math.max(0, player.resources[resourceKey] + amount);
+      }
+    });
+  }
+
+  /**
+   * 获取玩家数据原始引用（只读用途）
+   * @returns {object|null}
+   */
+  function getRawPlayer() {
+    return playerData.value;
+  }
+
+  /**
+   * 清除store
+   */
+  function clear() {
+    playerData.value = null;
+    isLoaded.value = false;
+  }
+
+  return {
+    // 状态
+    playerData,
+    isLoaded,
+    // 计算属性
+    realmName,
+    cultivationPercent,
+    hpPercent,
+    mpPercent,
+    equippedTerms,
+    // 方法
+    createPlayer,
+    loadFromSave,
+    batchUpdate,
+    updateField,
+    equipTerm,
+    unequipTerm,
+    modifyResource,
+    getRawPlayer,
+    clear,
+  };
+});
+
+export default usePlayerStore;
