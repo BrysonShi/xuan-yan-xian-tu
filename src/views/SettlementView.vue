@@ -83,44 +83,117 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { usePlayerStore } from '../stores/playerStore.js';
+import { useSimStore } from '../stores/simStore.js';
 
 const router = useRouter();
+const playerStore = usePlayerStore();
+const simStore = useSimStore();
 
-const simYears = ref(84);
-const highestRealm = ref('炼气九层');
-const eventCount = ref(23);
-const grade = ref('B');
-const deathCause = ref('寿元耗尽，坐化于洞府之中');
 const selectedReward = ref(null);
 
-const rewards = ref([
-  {
+// ─── 从 simStore 读取真实数据 ───
+const simYears = computed(() => simStore.simYears);
+const highestRealm = computed(() => simStore.highestRealm);
+const eventCount = computed(() => simStore.eventCount);
+const deathCause = computed(() => simStore.deathCause);
+
+// ─── 评价等级计算 ───
+const grade = computed(() => {
+  const years = simYears.value;
+  const startLevel = simStore.startRealmLevel || 0;
+  const endLevel = simStore.simRewards.highestRealmLevel || startLevel;
+  const realmGaps = endLevel - startLevel;
+
+  if (years < 20) return 'D';
+  if (realmGaps <= 0) return 'C';
+  if (realmGaps === 1) return 'B';
+  if (realmGaps === 2) return 'A';
+  return 'S'; // 3个以上
+});
+
+// ─── 动态生成奖励池（4个）───
+const rewards = computed(() => {
+  const r = simStore.getReward();
+  const rewardPool = [];
+
+  // A. 修为灌注：模拟中 20-30% 的修为
+  const cultBonus = Math.floor(r.cultivation * (0.2 + Math.random() * 0.1));
+  if (cultBonus > 0) {
+    rewardPool.push({
+      type: 'cultivation',
+      amount: cultBonus,
+      icon: '💫',
+      name: '修为灌顶',
+      desc: `获得 ${cultBonus.toLocaleString()} 点修为`,
+      rarity: 'common',
+    });
+  }
+
+  // B. 词条奖励
+  const termRarities = ['common', 'rare', 'epic'];
+  const termNames = {
+    common: ['坚韧之体', '灵气亲和', '静心凝神'],
+    rare: ['剑心通明', '悟道之体', '灵根觉醒'],
+    epic: ['天纵之才', '万法归一'],
+  };
+  const rIdx = Math.floor(Math.random() * termRarities.length);
+  const tRarity = termRarities[rIdx];
+  const tNames = termNames[tRarity];
+  const tName = tNames[Math.floor(Math.random() * tNames.length)];
+  rewardPool.push({
+    type: 'term',
+    termId: `term_${tName}`,
     icon: '✦',
-    name: '剑道入门',
-    desc: '获得词条：剑道入门（良品）',
-    rarity: 'rare',
-  },
-  {
-    icon: '💫',
-    name: '修为灌顶',
-    desc: '获得3000点修为',
-    rarity: 'common',
-  },
-  {
-    icon: '📜',
-    name: '清心诀',
-    desc: '获得功法：清心诀',
-    rarity: 'epic',
-  },
-  {
+    name: tName,
+    desc: `获得词条：${tName}（${tRarity === 'common' ? '凡品' : tRarity === 'rare' ? '良品' : '极品'}）`,
+    rarity: tRarity,
+  });
+
+  // C. 灵石奖励：模拟中获得的灵石的 50%
+  const stoneBonus = Math.floor(r.spiritStones * 0.5);
+  if (stoneBonus > 0) {
+    rewardPool.push({
+      type: 'spiritStones',
+      amount: stoneBonus,
+      icon: '💎',
+      name: '灵石返还',
+      desc: `获得 ${stoneBonus} 枚灵石`,
+      rarity: 'rare',
+    });
+  }
+
+  // D. 记忆碎片
+  const insightNames = [
+    '暗算手法残篇', '妖兽习性录', '阵法入门要诀', '丹道心得笔记', '灵植图鉴',
+  ];
+  const iName = insightNames[Math.floor(Math.random() * insightNames.length)];
+  rewardPool.push({
+    type: 'insight',
+    insightId: `insight_${Date.now()}`,
     icon: '🌟',
-    name: '悟性碎片',
-    desc: '永久悟性+1',
-    rarity: 'legendary',
-  },
-]);
+    name: '记忆碎片',
+    desc: `【${iName}】${iName.includes('残篇') ? '记录了关键信息' : '蕴含修炼心得'}`,
+    rarity: 'epic',
+  });
+
+  // 确保4个奖励（如果灵石不足，用额外的修为填充）
+  while (rewardPool.length < 4) {
+    rewardPool.push({
+      type: 'cultivation',
+      amount: 200,
+      icon: '💫',
+      name: '基础修为',
+      desc: '获得 200 点修为',
+      rarity: 'common',
+    });
+  }
+
+  // 返回前4个
+  return rewardPool.slice(0, 4);
+});
 
 function rarityLabel(r) {
   const m = { common: '凡品', rare: '良品', epic: '极品', legendary: '仙品', cursed: '凶品' };
@@ -133,10 +206,15 @@ function selectReward(idx) {
 
 function confirmReward() {
   if (selectedReward.value === null) return;
-  // TODO: 将奖励写入玩家数据
+
+  const reward = rewards.value[selectedReward.value];
+  simStore.restoreAndMerge(reward, playerStore);
+  simStore.reset();
+
   router.push('/reality');
 }
 </script>
+
 
 <style scoped>
 .settlement-view {

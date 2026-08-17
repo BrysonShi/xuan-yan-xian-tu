@@ -68,145 +68,251 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { ref, computed, onMounted, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { usePlayerStore } from '../stores/playerStore.js';
+import { useSimStore } from '../stores/simStore.js';
+import { storyGraph, endingChoices } from '../data/storyGraph.js';
+import { REALM_TABLE } from '../models/player.js';
 import StatusBar from '../components/StatusBar.vue';
 import TextDisplay from '../components/TextDisplay.vue';
 import ChoicePanel from '../components/ChoicePanel.vue';
 
 const router = useRouter();
 const playerStore = usePlayerStore();
+const simStore = useSimStore();
 
 const textRef = ref(null);
 const scrollRef = ref(null);
 const isPaused = ref(false);
 const showChoices = ref(false);
 
+// ─── 场景相关 ───
+const storyText = ref('');
+const currentNpc = ref(null);
+const highlightWords = ref([]);
+const currentOptions = ref([]);
+const pendingChoices = ref([]);
+const currentSceneId = ref('');
+
+// ─── 模拟状态 ───
 const currentYear = ref(16);
 const destinyCost = ref(10);
 const currentEvent = ref(null);
 const visibleOptions = ref([]);
 const eventHistory = ref([]);
-const highlightWords = ref(['灵气', '突破']);
+const simEventLog = ref([]);  // 供 storyGraph onEnter 使用的日志
 
-// 模拟引擎相关（简化版）
-let simEngine = null;
-let advanceTimer = null;
+// 最大模拟年数（寿终限制）
+const MAX_SIM_YEARS = 80;
 
-const playerName = computed(() => playerStore.playerData?.name || '无名散修');
-const realmName = computed(() => playerStore.realmName || '炼气一层');
-const cultivation = computed(() => playerStore.playerData?.cultivation || 0);
-const maxCultivation = computed(() => playerStore.playerData?.maxCultivation || 100);
-const spiritStones = computed(() => playerStore.playerData?.resources?.spiritStones || 0);
-const destinyPoints = computed(() => playerStore.playerData?.resources?.destinyPoints || 0);
+// ─── 计算属性（使用模拟中的临时玩家状态）───
+const playerName = computed(() => simStore.simPlayerState?.name || playerStore.playerData?.name || '无名散修');
+const realmName = computed(() => simStore.simPlayerState?.realm || '炼气一层');
+const cultivation = computed(() => simStore.simPlayerState?.cultivation || 0);
+const maxCultivation = computed(() => simStore.simPlayerState?.maxCultivation || 100);
+const spiritStones = computed(() => simStore.simPlayerState?.resources?.spiritStones || 0);
+const destinyPoints = computed(() => simStore.simPlayerState?.resources?.destinyPoints || 0);
 
-function skipText() {
-  textRef.value?.finishTyping();
+// ─── 模拟上下文中的 applyEffect ───
+function simApplyEffect(effects) {
+  const msgs = simStore.applySimEffect(effects);
+  msgs.forEach(m => simEventLog.value.push(`【${m}】`));
 }
 
-function onTextComplete() {
-  setTimeout(() => { showChoices.value = true; }, 200);
+// ─── 模拟上下文对象 ───
+function getSimContext() {
+  return {
+    applyEffect: simApplyEffect,
+    eventLog: simEventLog.value,
+  };
 }
 
+// ─── 场景加载 ───
+function loadScene(sceneId) {
+  const scene = storyGraph[sceneId];
+  if (!scene) {
+    console.error('[Simulation] Scene not found:', sceneId);
+    // 场景不存在，结束模拟
+    handleDeath('命运轨迹断裂，元神消散……');
+    return;
+  }
+  currentSceneId.value = sceneId;
+  storyText.value = scene.text;
+  highlightWords.value = scene.highlights || [];
+  showChoices.value = false;
+  currentEvent.value = { description: scene.text };
+
+  // 清空场景日志
+  simEventLog.value = [];
+
+  // 应用进入场景效果
+  if (scene.onEnter) {
+    scene.onEnter(getSimContext());
+  }
+
+  // 记录场景事件
+  const sceneLabel = scene.npc ? `${scene.npc.name}：${scene.text.substring(0, 30)}…` : scene.text.substring(0, 50) + '…';
+  simStore.recordEvent(currentYear.value, sceneLabel);
+
+  // 将 simEventLog 中的消息也记录到历史
+  simEventLog.value.forEach(msg => {
+    simStore.recordEvent(currentYear.value, msg);
+  });
+
+  // 记录到前端展示
+  eventHistory.value.push({
+    year: currentYear.value,
+    text: scene.text.substring(0, 60) + (scene.text.length > 60 ? '…' : ''),
+  });
+
+  // 检查是否是死亡场景
+  if (scene.isDeath) {
+    const deathText = scene.deathText || '你陨落于命运推演之中……';
+    setTimeout(() => {
+      handleDeath(deathText);
+    }, 1500);
+    return;
+  }
+
+  // 存储选项
+  pendingChoices.value = scene.choices || [];
+
+  scrollToBottom();
+}
+
+// ─── 选项处理 ───
 function handleChoice(opt) {
   showChoices.value = false;
+  currentOptions.value = [];
 
   // 记录选择
   eventHistory.value.push({
     year: currentYear.value,
     text: `【选择】${opt.text}`,
   });
+  simStore.recordEvent(currentYear.value, `【选择】${opt.text}`);
 
-  // 模拟处理（简化版）
-  setTimeout(() => {
+  // 推进年数（每个选择推进1-3年）
+  const yearsAdvance = Math.floor(Math.random() * 3) + 1;
+  currentYear.value += yearsAdvance;
+  simStore.simYears += yearsAdvance;
+  destinyCost.value += yearsAdvance * 2;
+
+  // 更新模拟中的年龄
+  if (simStore.simPlayerState) {
+    simStore.simPlayerState.age = (simStore.startAge || 16) + (currentYear.value - 16);
+  }
+
+  // 检查寿终
+  if (currentYear.value - 16 >= MAX_SIM_YEARS) {
+    setTimeout(() => {
+      handleDeath('寿元耗尽，坐化于天地之间');
+    }, 1000);
+    return;
+  }
+
+  // 跳转到下一个场景
+  if (opt.next) {
+    setTimeout(() => {
+      loadScene(opt.next);
+    }, 400);
+  } else {
+    // 没有下一个场景，继续静修
     currentEvent.value = null;
-    // 模拟推进一年
-    advanceYear();
-  }, 400);
+    setTimeout(() => {
+      advanceIdle();
+    }, 1000);
+  }
 }
 
-function advanceYear() {
-  currentYear.value++;
+// ─── 静修推进 ───
+function advanceIdle() {
+  if (isPaused.value) return;
+
+  // 静修一年
+  currentYear.value += 1;
+  simStore.simYears += 1;
   destinyCost.value += 2;
 
-  // 随机决定是否触发事件
-  if (Math.random() < 0.4) {
-    triggerRandomEvent();
-  } else {
-    eventHistory.value.push({
-      year: currentYear.value,
-      text: '平静的一年过去了，修为略有精进。',
-    });
+  // 更新年龄
+  if (simStore.simPlayerState) {
+    simStore.simPlayerState.age = (simStore.startAge || 16) + (currentYear.value - 16);
+  }
 
-    // 模拟死亡检查（简化：100年后）
-    if (currentYear.value > 100) {
-      handleDeath();
-      return;
+  // 少量修为增长
+  simApplyEffect({ cultivation: Math.floor(Math.random() * 100) + 50 });
+
+  eventHistory.value.push({
+    year: currentYear.value,
+    text: '平静的一年过去了，修为略有精进。',
+  });
+  simStore.recordEvent(currentYear.value, '平静修炼');
+
+  // 检查寿终
+  if (currentYear.value - 16 >= MAX_SIM_YEARS) {
+    handleDeath('寿元耗尽，坐化于天地之间');
+    return;
+  }
+
+  // 40%概率触发场景事件
+  if (Math.random() < 0.4 && simStore.saveSnapshot) {
+    const startScene = simStore.saveSnapshot.sceneId;
+    // 从起始场景的几个选项分支中随机选一个
+    const startSceneData = storyGraph[startScene];
+    if (startSceneData && startSceneData.choices && startSceneData.choices.length > 0) {
+      const randChoice = startSceneData.choices[Math.floor(Math.random() * startSceneData.choices.length)];
+      if (randChoice.next) {
+        loadScene(randChoice.next);
+        return;
+      }
     }
-
-    // 自动推进
-    advanceTimer = setTimeout(() => {
-      if (!isPaused.value) advanceYear();
-    }, 1500);
   }
 
   scrollToBottom();
+
+  // 继续自动推进
+  setTimeout(() => {
+    if (!isPaused.value) advanceIdle();
+  }, 1500);
 }
 
-function triggerRandomEvent() {
-  const events = [
-    {
-      id: 'EVT-01',
-      description: '你在山间修炼时，意外发现了一处隐秘的灵泉。泉水中蕴含精纯灵气，但泉旁似乎有妖兽的气息……',
-      options: [
-        { id: 'A', text: '冒险取水', description: '可能需要战斗' },
-        { id: 'B', text: '远远观察', description: '安全第一' },
-        { id: 'C', text: '绕道而行', description: '不值得冒险' },
-      ],
-    },
-    {
-      id: 'EVT-02',
-      description: '一位神秘老者出现在你面前，他似乎对你很感兴趣。「年轻人，我有一物可助你修行，你可愿意接受考验？」',
-      options: [
-        { id: 'A', text: '接受考验', description: '机不可失' },
-        { id: 'B', text: '婉言拒绝', description: '来历不明，不可轻信' },
-      ],
-    },
-    {
-      id: 'EVT-03',
-      description: '你在一次打坐中突然进入顿悟状态，灵气在体内疯狂运转。这是一次难得的突破机会！',
-      options: [
-        { id: 'A', text: '全力冲击', description: '悟性判定' },
-        { id: 'B', text: '稳妥推进', description: '缓慢但安全' },
-      ],
-    },
-  ];
-
-  const evt = events[Math.floor(Math.random() * events.length)];
-  currentEvent.value = evt;
-  visibleOptions.value = evt.options;
-}
-
-function handleDeath() {
+// ─── 死亡处理 ───
+function handleDeath(cause) {
   eventHistory.value.push({
     year: currentYear.value,
-    text: '你的模拟人生走到了尽头。寿元耗尽，元神消散于天地之间……',
+    text: cause,
     isDeath: true,
   });
+  simStore.recordEvent(currentYear.value, cause, true);
+  simStore.endSimulation(cause);
 
   setTimeout(() => {
     router.push('/settlement');
   }, 2000);
 }
 
+// ─── 暂停/继续 ───
 function handlePause() {
   isPaused.value = !isPaused.value;
-  if (!isPaused.value && !currentEvent.value) {
-    advanceYear();
-  } else if (isPaused.value && advanceTimer) {
-    clearTimeout(advanceTimer);
+  if (!isPaused.value && !currentEvent.value && !showChoices.value) {
+    advanceIdle();
   }
+}
+
+// ─── 文字播放完成 ───
+function onTextComplete() {
+  if (pendingChoices.value.length > 0) {
+    currentOptions.value = pendingChoices.value;
+    visibleOptions.value = pendingChoices.value;
+    setTimeout(() => { showChoices.value = true; }, 200);
+  } else {
+    showChoices.value = false;
+  }
+}
+
+function skipText() {
+  textRef.value?.finishTyping();
 }
 
 function scrollToBottom() {
@@ -216,17 +322,31 @@ function scrollToBottom() {
   });
 }
 
+// ─── 初始化 ───
 onMounted(() => {
-  // 启动初始事件
+  if (!simStore.isSimulating || !simStore.saveSnapshot) {
+    // 没有进行中的模拟，返回现实
+    router.push('/reality');
+    return;
+  }
+
+  // 设置初始年份
+  currentYear.value = (simStore.simPlayerState?.age || 16);
+  simStore.simYears = 0;
+
+  // 加载存档点的场景
+  const startSceneId = simStore.saveSnapshot.sceneId || 'start';
+  eventHistory.value.push({
+    year: currentYear.value,
+    text: '命运之轮转动，你踏入了另一段人生……',
+  });
+
   setTimeout(() => {
-    triggerRandomEvent();
+    loadScene(startSceneId);
   }, 800);
 });
-
-onBeforeUnmount(() => {
-  if (advanceTimer) clearTimeout(advanceTimer);
-});
 </script>
+
 
 <style scoped>
 .simulation-view {

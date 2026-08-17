@@ -159,6 +159,19 @@ export const usePlayerStore = defineStore('player', () => {
   }
 
   /**
+   * 添加记忆碎片（来自命运模拟）
+   * @param {string} insightId - 记忆碎片ID
+   */
+  function addInsight(insightId) {
+    batchUpdate(player => {
+      player.simInsights = player.simInsights || [];
+      if (!player.simInsights.includes(insightId)) {
+        player.simInsights.push(insightId);
+      }
+    });
+  }
+
+  /**
    * 获取玩家数据原始引用（只读用途）
    * @returns {object|null}
    */
@@ -193,6 +206,7 @@ export const usePlayerStore = defineStore('player', () => {
     equipTerm,
     unequipTerm,
     modifyResource,
+    addInsight,
     getRawPlayer,
     clear,
   };

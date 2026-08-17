@@ -117,6 +117,7 @@ export function createNewPlayer(name, options = {}) {
     inventory: [],
     relationships: {},
     memoryFragments: [],
+    simInsights: [],
     flags: {
       personality: 'calm',
       chapter: 1,
