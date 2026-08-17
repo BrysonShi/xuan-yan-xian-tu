@@ -75,6 +75,14 @@ export const usePlayerStore = defineStore('player', () => {
   }
 
   /**
+   * 更新整个玩家数据对象
+   * @param {object} newPlayer - 新玩家数据
+   */
+  function updatePlayer(newPlayer) {
+    playerData.value = deepClone(newPlayer);
+  }
+
+  /**
    * 批量更新玩家数据（避免响应式风暴）
    * @param {Function} updater - 更新函数，接收原始数据对象
    */
@@ -178,6 +186,7 @@ export const usePlayerStore = defineStore('player', () => {
     equippedTerms,
     // 方法
     createPlayer,
+    updatePlayer,
     loadFromSave,
     batchUpdate,
     updateField,
