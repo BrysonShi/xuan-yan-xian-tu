@@ -92,6 +92,8 @@ const router = useRouter();
 const playerStore = usePlayerStore();
 const simStore = useSimStore();
 
+// ─── 动态生成奖励池（4个）—— 在 onMounted 时一次性生成并锁定 ───
+const rewards = ref([]);
 const selectedReward = ref(null);
 
 // ─── 从 simStore 读取真实数据 ───
@@ -114,8 +116,7 @@ const grade = computed(() => {
   return 'S'; // 3个以上
 });
 
-// ─── 动态生成奖励池（4个）───
-const rewards = computed(() => {
+function generateRewards() {
   const r = simStore.getReward();
   const rewardPool = [];
 
@@ -191,9 +192,8 @@ const rewards = computed(() => {
     });
   }
 
-  // 返回前4个
   return rewardPool.slice(0, 4);
-});
+}
 
 function rarityLabel(r) {
   const m = { common: '凡品', rare: '良品', epic: '极品', legendary: '仙品', cursed: '凶品' };
@@ -213,6 +213,11 @@ function confirmReward() {
 
   router.push('/reality');
 }
+
+// ─── 初始化：进入结算页时一次性生成奖励池 ───
+onMounted(() => {
+  rewards.value = generateRewards();
+});
 </script>
 
 

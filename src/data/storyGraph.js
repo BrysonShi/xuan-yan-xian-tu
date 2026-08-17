@@ -324,8 +324,6 @@ export const storyGraph = {
       { id: 'B', text: '陈墨，跳崖！', desc: '利用记忆碎片中的信息逃脱', next: 'ch3_5' },
     ],
     onEnter: (ctx) => ctx.applyEffect({ cultivation: 200 }),
-    isDeath: true,
-    deathText: '你遭遇了劫修伏击，寡不敌众，倒在了血泊之中……',
   },
 
   'ch3_5': {
