@@ -117,6 +117,7 @@ export function createNewPlayer(name, options = {}) {
     inventory: [],
     relationships: {},
     memoryFragments: [],
+    visitedScenes: [],
     
     flags: {
       personality: 'calm',
@@ -195,4 +196,47 @@ export default {
   getMaxLifespan,
   getMaxMemoryFragmentSlots,
   REALM_TABLE,
+  SPIRIT_ROOT_DATA,
+};
+
+/**
+ * 灵根数据定义 — 每种灵根对属性和玩法有实质影响（闭环设计）
+ */
+export const SPIRIT_ROOT_DATA = {
+  '天灵根': {
+    emoji: '🌟', rarity: 'legendary', mult: 3.0,
+    attrBonus: { comprehension: 5, spirit: 5 },
+    passive: '灵气亲和极高，修炼速度是常人三倍',
+    storyHint: '山门前的测灵石碑爆发出耀眼金光，整座山都在震颤——万中无一的天灵根！',
+  },
+  '地灵根': {
+    emoji: '💎', rarity: 'epic', mult: 2.0,
+    attrBonus: { strength: 4, spirit: 3 },
+    passive: '灵根品质上乘，根基深厚',
+    storyHint: '石碑亮起三色光芒，灵气凝为实质——罕见的上等灵根。',
+  },
+  '变异灵根': {
+    emoji: '⚡', rarity: 'epic', mult: 2.5,
+    attrBonus: { luck: 8, comprehension: 2 },
+    passive: '变异灵根，天机难测，气运逆天',
+    storyHint: '石碑上的光芒忽明忽暗，最终化为一道紫色雷纹——变异灵根！',
+  },
+  '真灵根': {
+    emoji: '🔥', rarity: 'rare', mult: 1.2,
+    attrBonus: { comprehension: 2, strength: 2 },
+    passive: '标准灵根，资质尚可',
+    storyHint: '石碑亮起两道光芒——中规中矩的真灵根。',
+  },
+  '伪灵根': {
+    emoji: '🌫', rarity: 'common', mult: 0.7,
+    attrBonus: { luck: 5 },
+    passive: '灵根驳杂，但暗藏一线机缘',
+    storyHint: '石碑勉强亮起四道暗淡光芒——四灵根，伪灵根。身后有人窃笑。',
+  },
+  '废品灵根': {
+    emoji: '💀', rarity: 'cursed', mult: 0.3,
+    attrBonus: { luck: 10 },
+    passive: '废材灵根，众人皆叹可惜，殊不知命运另有安排',
+    storyHint: '石碑毫无反应。测灵弟子连看都不看你一眼："下一个。"你攥紧了拳头。',
+  },
 };

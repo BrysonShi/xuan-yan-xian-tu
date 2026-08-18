@@ -86,6 +86,14 @@ export const usePlayerStore = defineStore('player', () => {
       }));
     }
     if (data.simInsights) delete data.simInsights;
+    // 迁移 visitedScenes（场景访问追踪）
+    if (!data.visitedScenes) data.visitedScenes = [];
+    // 迁移 spiritRoot.typeName（灵根名称，用于剧情分支）
+    if (data.spiritRoot && !data.spiritRoot.typeName) {
+      // 从 quality 反推 typeName
+      const qualityToName = { 5: '天灵根', 4: '地灵根', 3: '真灵根', 2: '伪灵根', 1: '废品灵根' };
+      data.spiritRoot.typeName = qualityToName[data.spiritRoot.quality] || '真灵根';
+    }
     data.version = '0.2.0';
     return data;
   }

@@ -36,7 +36,7 @@
         <p class="form-hint text-dim">取一个仙途上的名号</p>
       </div>
 
-      <!-- 天赋觉醒（简易转盘） -->
+      <!-- 天赋觉醒（SVG转盘） -->
       <div class="form-section anim-fade-up talent-section" v-if="showWheel" :class="{ 'talent-section--revealed': talentRevealed }">
         <label class="form-label">先天灵根</label>
         <div class="awakening-narration text-dim" v-if="!talentRevealed && !isSpinning">
@@ -44,17 +44,27 @@
         </div>
         <div class="talent-wheel" :class="{ 'talent-wheel--spinning': isSpinning, 'talent-wheel--revealed': talentRevealed }">
           <div class="talent-wheel__glow" v-if="isSpinning || talentRevealed"></div>
-          <div class="talent-wheel__inner" :style="wheelStyle">
-            <div
+          <svg class="talent-wheel__svg" :style="wheelStyle" viewBox="-90 -90 180 180">
+            <g
               v-for="(t, i) in talentPool"
               :key="i"
-              class="talent-wheel__seg"
-              :style="segStyle(i)"
+              :transform="`rotate(${(360 / talentPool.length) * i})`"
             >
-              <span class="talent-wheel__emoji">{{ t.emoji }}</span>
-              <span class="talent-wheel__name">{{ t.name }}</span>
-            </div>
-          </div>
+              <path :d="slicePath" :fill="sliceColors[i]" stroke="rgba(212,175,85,0.3)" stroke-width="0.5" />
+              <text
+                :transform="`rotate(${180 / talentPool.length}) translate(0, -50)`"
+                text-anchor="middle"
+                dominant-baseline="central"
+                class="talent-wheel__label"
+              >
+                <tspan x="0" dy="-6" font-size="16">{{ t.emoji }}</tspan>
+                <tspan x="0" dy="14" font-size="7" fill="rgba(255,255,255,0.85)">{{ t.name }}</tspan>
+              </text>
+            </g>
+            <!-- 中心圆 -->
+            <circle cx="0" cy="0" r="18" fill="rgba(15,12,8,0.9)" stroke="rgba(212,175,85,0.4)" stroke-width="1" />
+            <text x="0" y="0" text-anchor="middle" dominant-baseline="central" fill="rgba(212,175,85,0.8)" font-size="7">灵根</text>
+          </svg>
           <div class="talent-wheel__pointer">▼</div>
         </div>
         <!-- 灵根结果展示 -->
@@ -65,6 +75,7 @@
               {{ selectedTalent.name }}
             </p>
             <p class="talent-result__desc">{{ selectedTalent.desc }}</p>
+            <p class="talent-result__bonus text-dim" v-if="selectedTalent.bonusText">{{ selectedTalent.bonusText }}</p>
             <p class="talent-result__flavor text-dim">{{ selectedTalent.flavor }}</p>
           </div>
         </transition>
@@ -97,6 +108,7 @@ import { ref, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { usePlayerStore } from '../stores/playerStore.js';
 import { saveSystem } from '../engines/saveSystem.js';
+import { SPIRIT_ROOT_DATA } from '../models/player.js';
 
 const router = useRouter();
 const playerStore = usePlayerStore();
@@ -109,31 +121,44 @@ const showWheel = ref(false);
 const talentRevealed = ref(false);
 
 const talentPool = [
-  { name: '天灵根', emoji: '🌟', rarity: 'legendary', desc: '五行灵根纯净，修炼速度极快', mult: 3.0, flavor: '万中无一的绝世之才，修仙界为之侧目' },
-  { name: '地灵根', emoji: '💎', rarity: 'epic', desc: '灵根品质上乘，天赋异禀', mult: 2.0, flavor: '根基深厚，假以时日必成大器' },
-  { name: '变异灵根', emoji: '⚡', rarity: 'epic', desc: '罕见变异灵根，潜力无穷', mult: 2.5, flavor: '异象突现，天机难测，前路未可知' },
-  { name: '真灵根', emoji: '🔥', rarity: 'rare', desc: '标准灵根，资质尚可', mult: 1.2, flavor: '中规中矩，胜在勤勉可补不足' },
-  { name: '伪灵根', emoji: '🌫', rarity: 'common', desc: '灵根驳杂，修炼缓慢', mult: 0.7, flavor: '资质平平，却有一线机缘暗藏其中' },
-  { name: '废品灵根', emoji: '💀', rarity: 'cursed', desc: '废材灵根，仙途艰难', mult: 0.3, flavor: '众人皆叹可惜，殊不知命运另有安排……' },
+  { name: '天灵根', emoji: '🌟', rarity: 'legendary', desc: '五行灵根纯净，修炼速度极快', mult: 3.0, bonusText: '属性：悟性+5 神识+5', flavor: '万中无一的绝世之才，修仙界为之侧目' },
+  { name: '地灵根', emoji: '💎', rarity: 'epic', desc: '灵根品质上乘，天赋异禀', mult: 2.0, bonusText: '属性：根骨+4 神识+3', flavor: '根基深厚，假以时日必成大器' },
+  { name: '变异灵根', emoji: '⚡', rarity: 'epic', desc: '罕见变异灵根，潜力无穷', mult: 2.5, bonusText: '属性：气运+8 悟性+2', flavor: '异象突现，天机难测，前路未可知' },
+  { name: '真灵根', emoji: '🔥', rarity: 'rare', desc: '标准灵根，资质尚可', mult: 1.2, bonusText: '属性：悟性+2 根骨+2', flavor: '中规中矩，胜在勤勉可补不足' },
+  { name: '伪灵根', emoji: '🌫', rarity: 'common', desc: '灵根驳杂，修炼缓慢', mult: 0.7, bonusText: '属性：气运+5', flavor: '资质平平，却有一线机缘暗藏其中' },
+  { name: '废品灵根', emoji: '💀', rarity: 'cursed', desc: '废材灵根，仙途艰难', mult: 0.3, bonusText: '属性：气运+10（？！）', flavor: '众人皆叹可惜，殊不知命运另有安排……' },
+];
+
+// SVG 转盘：扇形路径（60度一片，半径75）
+const slicePath = computed(() => {
+  const r = 75;
+  const angle = 360 / talentPool.length; // 60度
+  const rad = (angle * Math.PI) / 180;
+  const x = r * Math.sin(rad);
+  const y = -r * Math.cos(rad);
+  return `M 0,0 L 0,${-r} A ${r},${r} 0 0,1 ${x.toFixed(2)},${y.toFixed(2)} Z`;
+});
+
+// 每片颜色（对应灵根品质）
+const sliceColors = [
+  'rgba(255,215,0,0.25)',   // 天灵根-金
+  'rgba(168,85,247,0.25)',  // 地灵根-紫
+  'rgba(139,92,246,0.25)',  // 变异灵根-深紫
+  'rgba(239,68,68,0.2)',    // 真灵根-红
+  'rgba(107,114,128,0.2)',  // 伪灵根-灰
+  'rgba(75,85,99,0.25)',    // 废品灵根-暗灰
 ];
 
 function startAwakening() {
   showWheel.value = true;
 }
 
-function proceedToTalent() {
-  // Enter 键按下后滚动到灵根感应区域（已在新流程中与道号同屏显示，无需操作）
-}
+function proceedToTalent() {}
 
 const wheelStyle = computed(() => ({
   transform: `rotate(${spinDeg.value}deg)`,
   transition: isSpinning.value ? 'transform 2.5s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none',
 }));
-
-function segStyle(i) {
-  const angle = (360 / talentPool.length) * i;
-  return { transform: `rotate(${angle}deg) translateY(-32px)` };
-}
 
 function rollTalent() {
   if (isSpinning.value) return;
@@ -149,7 +174,6 @@ function rollTalent() {
     const norm = ((360 - (target % 360)) + 360) % 360;
     const idx = Math.floor(norm / (360 / talentPool.length)) % talentPool.length;
     selectedTalent.value = talentPool[idx];
-    // 延迟显示结果，增加仪式感
     setTimeout(() => {
       talentRevealed.value = true;
     }, 400);
@@ -164,7 +188,9 @@ function handleCreate() {
     const player = playerStore.createPlayer(playerName.value.trim());
 
     if (selectedTalent.value) {
+      const rootData = SPIRIT_ROOT_DATA[selectedTalent.value.name];
       player.spiritRoot = {
+        typeName: selectedTalent.value.name,  // 灵根名称（用于剧情分支）
         type: ['金', '木', '水', '火', '土'],
         quality: selectedTalent.value.rarity === 'legendary' ? 5
           : selectedTalent.value.rarity === 'epic' ? 4
@@ -173,6 +199,16 @@ function handleCreate() {
           : 2,
         multiplier: selectedTalent.value.mult,
       };
+
+      // 灵根属性加成（闭环：灵根影响属性）
+      if (rootData?.attrBonus) {
+        Object.entries(rootData.attrBonus).forEach(([attr, val]) => {
+          if (player.attributes[attr] !== undefined) {
+            player.attributes[attr] += val;
+          }
+        });
+      }
+
       playerStore.updatePlayer(player);
     }
 
@@ -306,70 +342,42 @@ function handleCreate() {
 /* 天赋转盘 */
 .talent-wheel {
   position: relative;
-  width: 160px;
-  height: 160px;
+  width: 200px;
+  height: 200px;
   margin: var(--s-lg) auto;
 }
 
 .talent-wheel__glow {
   position: absolute;
-  inset: -12px;
+  inset: -16px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(212, 175, 85, 0.15) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(212, 175, 85, 0.2) 0%, transparent 70%);
   animation: glow-pulse 1.5s ease-in-out infinite;
   pointer-events: none;
 }
 
 @keyframes glow-pulse {
   0%, 100% { opacity: 0.5; transform: scale(1); }
-  50% { opacity: 1; transform: scale(1.08); }
+  50% { opacity: 1; transform: scale(1.1); }
 }
 
-.talent-wheel__inner {
+.talent-wheel__svg {
   width: 100%;
   height: 100%;
   border-radius: 50%;
-  border: 2px solid var(--c-border-dim);
-  position: relative;
-  background: radial-gradient(circle, var(--c-bg-light), var(--c-bg));
-  transition: border-color 0.3s, box-shadow 0.3s;
+  filter: drop-shadow(0 0 8px rgba(212,175,85,0.15));
 }
 
-.talent-wheel--spinning .talent-wheel__inner {
-  border-color: var(--c-gold);
-  box-shadow: 0 0 30px rgba(212, 175, 85, 0.3), inset 0 0 20px rgba(212, 175, 85, 0.05);
+.talent-wheel--spinning .talent-wheel__svg {
+  filter: drop-shadow(0 0 20px rgba(212,175,85,0.4));
 }
 
-.talent-wheel--revealed .talent-wheel__inner {
-  border-color: var(--c-gold);
-  box-shadow: 0 0 15px rgba(212, 175, 85, 0.15);
+.talent-wheel--revealed .talent-wheel__svg {
+  filter: drop-shadow(0 0 12px rgba(212,175,85,0.25));
 }
 
-.talent-wheel__seg {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  margin: -14px 0 0 -14px;
-  width: 28px;
-  height: 28px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  transform-origin: 14px calc(50% + 18px);
-  font-size: 10px;
-}
-
-.talent-wheel__emoji {
-  font-size: 14px;
-  line-height: 1;
-}
-
-.talent-wheel__name {
-  font-size: 7px;
-  color: var(--c-text-dim);
-  white-space: nowrap;
-  margin-top: 1px;
+.talent-wheel__label {
+  pointer-events: none;
 }
 
 .talent-wheel__pointer {
@@ -439,6 +447,13 @@ function handleCreate() {
 .talent-result__desc {
   font-size: var(--fs-sm);
   line-height: 1.6;
+}
+
+.talent-result__bonus {
+  font-size: var(--fs-xs);
+  margin-top: 6px;
+  color: var(--c-gold);
+  font-weight: 600;
 }
 
 .talent-result__flavor {

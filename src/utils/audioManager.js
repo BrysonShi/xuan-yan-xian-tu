@@ -65,6 +65,15 @@ class AudioManager {
     this._bgmSchedulerId = null;
     this._bgmStepIndex = 0;
     this._bassStepIndex = 0;
+
+    // 场景 BGM 音频文件播放
+    this._bgmAudio = null;     // 当前播放的 Audio 元素
+    this._currentBgmFile = ''; // 当前 BGM 文件路径
+    this._bgmFileMap = {
+      main: '/audio/bgm_main.mp3',
+      battle: '/audio/bgm_battle.mp3',
+      cultivate: '/audio/bgm_cultivate.mp3',
+    };
   }
 
   /**
@@ -289,6 +298,16 @@ class AudioManager {
     if (!this._bgmPlaying) return;
     this._bgmPlaying = false;
 
+    // 停止音频文件播放
+    if (this._bgmAudio) {
+      try {
+        this._bgmAudio.pause();
+        this._bgmAudio.currentTime = 0;
+      } catch {}
+      this._bgmAudio = null;
+      this._currentBgmFile = '';
+    }
+
     if (this._bgmSchedulerId) {
       clearTimeout(this._bgmSchedulerId);
       this._bgmSchedulerId = null;
@@ -322,6 +341,82 @@ class AudioManager {
     }, fadeTime * 1000 + 200);
 
     console.log('[AudioManager] BGM 已停止');
+  }
+
+  // ─── 场景 BGM（音频文件播放） ───
+
+  /**
+   * 播放场景对应的 BGM 文件。
+   * 如果音频文件不存在，自动降级为合成器 BGM。
+   * @param {'main'|'battle'|'cultivate'} sceneType - 场景类型
+   */
+  playSceneBgm(sceneType) {
+    if (!this._bgmEnabled) return;
+
+    const file = this._bgmFileMap[sceneType];
+    if (!file) {
+      console.warn('[AudioManager] 未知场景类型:', sceneType);
+      return;
+    }
+
+    // 如果已在播放同一 BGM，不重复加载
+    if (this._currentBgmFile === file && this._bgmAudio && !this._bgmAudio.paused) {
+      return;
+    }
+
+    // 停止当前 BGM
+    this.stopBgm();
+
+    // 先尝试播放音频文件
+    try {
+      const audio = new Audio(file);
+      audio.loop = true;
+      audio.volume = this._bgmVolume;
+
+      audio.addEventListener('canplaythrough', () => {
+        audio.play().catch(() => {
+          // 如果播放失败（可能是文件不存在），降级为合成器
+          console.warn('[AudioManager] 音频文件播放失败，降级为合成器:', file);
+          this.startBgm();
+        });
+      }, { once: true });
+
+      audio.addEventListener('error', () => {
+        // 文件加载失败，降级为合成器 BGM
+        console.warn('[AudioManager] 音频文件加载失败，降级为合成器:', file);
+        this._bgmAudio = null;
+        this._currentBgmFile = '';
+        this.startBgm();
+      }, { once: true });
+
+      audio.load();
+      this._bgmAudio = audio;
+      this._currentBgmFile = file;
+      this._bgmPlaying = true;
+      console.log('[AudioManager] 场景 BGM 加载:', sceneType);
+    } catch (err) {
+      console.warn('[AudioManager] playSceneBgm error, 降级合成器:', err);
+      this.startBgm();
+    }
+  }
+
+  /**
+   * 根据场景标签自动选择 BGM 类型
+   * @param {string[]} tags - 场景标签数组
+   */
+  autoSceneBgm(tags) {
+    if (!tags || !tags.length) {
+      this.playSceneBgm('main');
+      return;
+    }
+    const tagStr = tags.join(',');
+    if (tagStr.includes('combat') || tagStr.includes('danger') || tagStr.includes('conflict')) {
+      this.playSceneBgm('battle');
+    } else if (tagStr.includes('修炼') || tagStr.includes('突破')) {
+      this.playSceneBgm('cultivate');
+    } else {
+      this.playSceneBgm('main');
+    }
   }
 
   // ─── SFX 音效 ───

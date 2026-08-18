@@ -188,11 +188,30 @@ function loadScene(sceneId) {
     return;
   }
   currentSceneId.value = sceneId;
+
+  // 灵根与访问次数上下文（用于动态文本和灵根闭环）
+  const playerRoot = playerStore.playerData?.spiritRoot;
+  const spiritRootType = playerRoot?.typeName || '';
+  const visitedScenes = playerStore.playerData?.visitedScenes || [];
+  const isFirstVisit = !visitedScenes.includes(sceneId);
+
+  // 追踪场景访问（防止无限刷修为）
+  if (isFirstVisit && playerStore.playerData) {
+    playerStore.batchUpdate(p => {
+      if (!p.visitedScenes) p.visitedScenes = [];
+      if (!p.visitedScenes.includes(sceneId)) p.visitedScenes.push(sceneId);
+    });
+  }
+
   // 支持动态文案：text 可以是字符串或函数
   if (typeof scene.text === 'function') {
     const realm = playerStore.playerData?.realm || '炼气一层';
     const stones = playerStore.playerData?.resources?.spiritStones || 0;
-    storyText.value = scene.text(realm, stones);
+    storyText.value = scene.text(realm, stones, {
+      spiritRootType,
+      visitedCount: visitedScenes.length,
+      isFirstVisit,
+    });
   } else {
     storyText.value = scene.text;
   }
@@ -205,10 +224,17 @@ function loadScene(sceneId) {
   // 播放场景切换音效
   try { audioManager.playTransition(); } catch {}
 
-  // 应用进入场景时的效果（传入上下文）
+  // 根据场景标签自动切换 BGM
+  try { audioManager.autoSceneBgm(scene.tags); } catch {}
+
+  // 应用进入场景时的效果（首次访问才给奖励，防止无限刷）
   if (scene.onEnter) {
+    const shouldApplyReward = !scene.firstVisitOnly || isFirstVisit;
+    if (!shouldApplyReward) {
+      eventLog.value.push('（此地已探索过，没有新的收获）');
+    }
     scene.onEnter({
-      applyEffect,
+      applyEffect: shouldApplyReward ? applyEffect : () => {},
       eventLog: eventLog.value,
       unlockSim: () => {
         if (playerStore.playerData) {
