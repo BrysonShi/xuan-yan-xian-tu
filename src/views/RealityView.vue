@@ -289,7 +289,7 @@ function handleChoice(opt) {
     });
     // 命运改写特效文本
     showFateRewrite.value = true;
-    fateRewriteText.value = `「命运的丝线因你的预知而偏移——」\n\n${opt.fragmentDesc || '你避开了命运的陷阱。'}\n\n「你改变了命运。」;
+    fateRewriteText.value = `「命运的丝线因你的预知而偏移——」\n\n${opt.fragmentDesc || '你避开了命运的陷阱。'}\n\n「你改变了命运。」`;
     eventLog.value.push('【命运改写：预知之力扭转了因果】');
     // 预知选项也走 next 场景
     if (opt.next) {
