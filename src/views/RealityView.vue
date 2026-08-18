@@ -65,9 +65,9 @@
         <span class="nav-btn__icon">🏆</span>
         <span class="nav-btn__label">成就</span>
       </button>
-      <button class="nav-btn nav-btn--primary" @click="startSimulation" :disabled="!simUnlocked">
-        <span class="nav-btn__icon">{{ simUnlocked ? '🔮' : '🔒' }}</span>
-        <span class="nav-btn__label">{{ simUnlocked ? '命运模拟' : '未解锁' }}</span>
+      <button class="nav-btn nav-btn--primary" @click="startSimulation" :disabled="!simUnlocked || !isInSafeZone">
+        <span class="nav-btn__icon">{{ !simUnlocked ? '🔒' : (!isInSafeZone ? '⚠️' : '🔮') }}</span>
+        <span class="nav-btn__label">{{ !simUnlocked ? '未解锁' : (!isInSafeZone ? '需安全区' : '命运模拟') }}</span>
       </button>
       <button class="nav-btn" @click="menuVisible = true">
         <span class="nav-btn__icon">☰</span>
@@ -251,10 +251,51 @@ const maxCultivation = computed(() => playerStore.playerData?.maxCultivation || 
 const spiritStones = computed(() => playerStore.playerData?.resources?.spiritStones || 0);
 const destinyPoints = computed(() => playerStore.playerData?.resources?.destinyPoints || 0);
 const simUnlocked = computed(() => playerStore.playerData?.flags?.sim_unlocked || false);
+const isInSafeZone = computed(() => {
+  const scene = storyGraph[currentSceneId.value];
+  return scene?.isSafeZone === true;
+});
 
 // ─── 交互函数 ───
 function skipTyping() {
   textRef.value?.finishTyping();
+}
+
+// 根据境界获取模拟消耗灵石数
+function getSimCost() {
+  const rl = playerStore.playerData?.realmLevel || 0;
+  if (rl <= 2) return 8;      // 炼气1-3层
+  if (rl <= 5) return 15;     // 炼气4-6层
+  if (rl <= 8) return 30;     // 炼气7-9层
+  return 60;                  // 筑基+
+}
+
+// 根据境界获取每日模拟次数上限
+function getDailySimLimit() {
+  const rl = playerStore.playerData?.realmLevel || 0;
+  if (rl <= 2) return 3;
+  if (rl <= 5) return 5;
+  if (rl <= 8) return 8;
+  return 10;
+}
+
+// 检查并增加今日模拟次数
+function consumeDailySim() {
+  const today = new Date().toISOString().slice(0, 10);
+  const flags = playerStore.playerData.flags;
+  if (!flags.sim_daily) flags.sim_daily = { date: '', count: 0 };
+  if (flags.sim_daily.date !== today) {
+    flags.sim_daily.date = today;
+    flags.sim_daily.count = 0;
+  }
+  flags.sim_daily.count++;
+}
+
+function getTodaySimCount() {
+  const today = new Date().toISOString().slice(0, 10);
+  const sd = playerStore.playerData?.flags?.sim_daily;
+  if (!sd || sd.date !== today) return 0;
+  return sd.count;
 }
 
 function startSimulation() {
@@ -262,16 +303,30 @@ function startSimulation() {
     eventLog.value.push('【命运模拟器尚未解锁】');
     return;
   }
-  // 检查灵石
-  if (playerStore.playerData.resources.spiritStones < 10) {
-    eventLog.value.push('【灵石不足，无法启动命运模拟】');
+  // 检查安全区
+  const curScene = storyGraph[currentSceneId.value];
+  if (!curScene?.isSafeZone) {
+    eventLog.value.push('【只能在安全区域启动命运模拟】');
     return;
   }
-  // 扣除灵石
-  playerStore.modifyResource('spiritStones', -10);
-  // 存档
+  // 检查每日次数
+  const todayUsed = getTodaySimCount();
+  const dailyLimit = getDailySimLimit();
+  if (todayUsed >= dailyLimit) {
+    eventLog.value.push(`【今日模拟次数已用尽（${todayUsed}/${dailyLimit}），明日再来】`);
+    return;
+  }
+  // 检查灵石
+  const cost = getSimCost();
+  if (playerStore.playerData.resources.spiritStones < cost) {
+    eventLog.value.push(`【灵石不足，启动模拟需要 ${cost} 枚灵石】`);
+    return;
+  }
+  // 扣除灵石并记录次数
+  playerStore.modifyResource('spiritStones', -cost);
+  consumeDailySim();
+  // 存档并跳转
   simStore.startSimulation(currentSceneId.value, playerStore);
-  // 跳转
   router.push('/simulation');
 }
 

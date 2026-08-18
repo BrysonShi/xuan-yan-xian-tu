@@ -117,11 +117,13 @@ export function createNewPlayer(name, options = {}) {
     inventory: [],
     relationships: {},
     memoryFragments: [],
-    simInsights: [],
+    
     flags: {
       personality: 'calm',
       chapter: 1,
       sim_unlocked: false,
+      sim_daily: { date: '', count: 0 },
+      memory_fragment_slots: 5,
       first_sim_done: false,
     },
     achievements: [],
@@ -135,7 +137,7 @@ export function createNewPlayer(name, options = {}) {
     createdAt: now,
     updatedAt: now,
     playTime: 0,
-    version: '0.1.0',
+    version: '0.2.0',
   };
 }
 

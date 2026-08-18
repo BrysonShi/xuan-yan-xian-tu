@@ -69,8 +69,30 @@ export const usePlayerStore = defineStore('player', () => {
    * 从存档加载角色数据
    * @param {object} data - 存档中的玩家数据
    */
+  // 存档迁移函数
+  function migrateSaveData(data) {
+    if (!data.flags) data.flags = {};
+    // 0.1.0 → 0.2.0: 添加 sim_daily, memory_fragment_slots
+    if (!data.flags.sim_daily) {
+      data.flags.sim_daily = { date: '', count: 0 };
+    }
+    if (data.flags.memory_fragment_slots === undefined) {
+      data.flags.memory_fragment_slots = 5;
+    }
+    // 迁移 simInsights → memoryFragments
+    if (data.simInsights && data.simInsights.length && !data.memoryFragments) {
+      data.memoryFragments = data.simInsights.map(id => ({
+        id, name: id, description: '', matchTags: [], used: false
+      }));
+    }
+    if (data.simInsights) delete data.simInsights;
+    data.version = '0.2.0';
+    return data;
+  }
+
   function loadFromSave(data) {
-    playerData.value = deepClone(data);
+    const migrated = migrateSaveData(data);
+    playerData.value = deepClone(migrated);
     isLoaded.value = true;
   }
 

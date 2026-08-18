@@ -5,7 +5,7 @@
       <div class="sim-header__info">
         <span class="sim-header__year font-num">第 {{ currentYear }} 年</span>
         <span class="sim-header__sep">|</span>
-        <span class="sim-header__cost text-dim font-num">天机点 {{ destinyCost }}</span>
+        <span class="sim-header__cost text-dim font-num">灵石 {{ destinyCost }}</span>
       </div>
       <button class="sim-header__pause btn btn--ghost" @click="handlePause">
         {{ isPaused ? '▶ 继续' : '⏸ 暂停' }}
