@@ -36,11 +36,32 @@
         </div>
       </div>
 
-      <!-- 死亡回放 -->
+      <!-- 死亡复盘（P1 增强版） -->
       <div v-if="deathCause" class="settlement-view__death anim-fade-up" style="animation-delay:0.2s;">
-        <p class="settlement-view__death-text text-dim">
-          「{{ deathCause }}」
-        </p>
+        <p class="settlement-view__death-title">你陨落于命运推演之中。</p>
+        <div class="settlement-view__death-detail">
+          <p class="settlement-view__death-text text-dim">
+            💀 <strong>死因</strong>：{{ deathCause }}
+          </p>
+          <p v-if="deathLesson" class="settlement-view__death-lesson">
+            💡 <strong>教训</strong>：{{ deathLesson }}
+          </p>
+        </div>
+        <!-- 产出的记忆碎片 -->
+        <div v-if="generatedFragments.length" class="settlement-view__fragments">
+          <p class="settlement-view__fragments-title">命运馈赠的记忆碎片：</p>
+          <div
+            v-for="frag in generatedFragments"
+            :key="frag.id"
+            class="fragment-card"
+          >
+            <span class="fragment-card__icon">🌟</span>
+            <div class="fragment-card__info">
+              <span class="fragment-card__name">{{ frag.name }}</span>
+              <span class="fragment-card__desc">{{ frag.description }}</span>
+            </div>
+          </div>
+        </div>
       </div>
 
       <!-- 奖励选择 4选1 -->
@@ -107,6 +128,8 @@ const simYears = computed(() => simStore.simYears);
 const highestRealm = computed(() => simStore.highestRealm);
 const eventCount = computed(() => simStore.eventCount);
 const deathCause = computed(() => simStore.deathCause);
+const deathLesson = computed(() => simStore.deathLesson);
+const generatedFragments = computed(() => simStore.generatedFragments);
 
 // ─── 评价等级计算 ───
 const grade = computed(() => {
@@ -173,19 +196,29 @@ function generateRewards() {
     });
   }
 
-  // D. 记忆碎片
-  const insightNames = [
-    '暗算手法残篇', '妖兽习性录', '阵法入门要诀', '丹道心得笔记', '灵植图鉴',
-  ];
-  const iName = insightNames[Math.floor(Math.random() * insightNames.length)];
-  rewardPool.push({
-    type: 'insight',
-    insightId: `insight_${Date.now()}`,
-    icon: '🌟',
-    name: '记忆碎片',
-    desc: `【${iName}】${iName.includes('残篇') ? '记录了关键信息' : '蕴含修炼心得'}`,
-    rarity: 'epic',
-  });
+  // D. 记忆碎片（从 simStore 生成的碎片中取第一个）
+  const frags = simStore.generatedFragments || [];
+  const firstFrag = frags[0];
+  if (firstFrag) {
+    rewardPool.push({
+      type: 'insight',
+      insightId: firstFrag.id,
+      icon: '🌟',
+      name: firstFrag.name,
+      desc: firstFrag.description,
+      rarity: 'epic',
+    });
+  } else {
+    // fallback
+    rewardPool.push({
+      type: 'insight',
+      insightId: `insight_${Date.now()}`,
+      icon: '🌟',
+      name: '命运残影',
+      desc: '模拟经历化为模糊的记忆碎片',
+      rarity: 'epic',
+    });
+  }
 
   // 确保4个奖励（如果灵石不足，用额外的修为填充）
   while (rewardPool.length < 4) {
@@ -328,19 +361,87 @@ onMounted(() => {
   font-size: var(--fs-2xl);
 }
 
-/* 死亡回放 */
+/* 死亡复盘 */
 .settlement-view__death {
   text-align: center;
   margin-bottom: var(--s-xl);
   padding: var(--s-md);
-  border: 1px dashed rgba(224, 85, 85, 0.2);
+  border: 1px dashed rgba(140, 100, 230, 0.25);
   border-radius: var(--r-md);
+  background: rgba(140, 100, 230, 0.03);
+}
+
+.settlement-view__death-title {
+  font-size: var(--fs-base);
+  color: var(--sim-glow);
+  font-style: italic;
+  margin-bottom: var(--s-md);
+  letter-spacing: 0.1em;
+}
+
+.settlement-view__death-detail {
+  text-align: left;
+  padding: 0 var(--s-sm);
 }
 
 .settlement-view__death-text {
   font-size: var(--fs-sm);
-  font-style: italic;
-  line-height: 1.6;
+  line-height: 1.7;
+  margin-bottom: 6px;
+}
+
+.settlement-view__death-lesson {
+  font-size: var(--fs-sm);
+  color: var(--c-gold-light);
+  line-height: 1.7;
+}
+
+.settlement-view__fragments {
+  margin-top: var(--s-md);
+  padding-top: var(--s-md);
+  border-top: 1px solid rgba(140, 100, 230, 0.15);
+}
+
+.settlement-view__fragments-title {
+  font-size: var(--fs-sm);
+  color: var(--sim-glow);
+  margin-bottom: var(--s-sm);
+  letter-spacing: 0.05em;
+}
+
+.fragment-card {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  background: rgba(140, 100, 230, 0.06);
+  border: 1px solid rgba(140, 100, 230, 0.2);
+  border-radius: var(--r-sm);
+  margin-bottom: 8px;
+}
+
+.fragment-card__icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.fragment-card__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.fragment-card__name {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--c-gold-light);
+}
+
+.fragment-card__desc {
+  font-size: var(--fs-xs);
+  color: var(--c-text-dim);
+  line-height: 1.5;
 }
 
 /* 奖励选择 */

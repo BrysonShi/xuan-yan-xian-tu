@@ -8,6 +8,131 @@ import { ref, computed } from 'vue';
 import { deepClone } from '../utils/helpers.js';
 import { REALM_TABLE } from '../models/player.js';
 
+// ─── 天机反噬概率计算（v2.1 修正公式）───
+/**
+ * 计算天机反噬死亡概率
+ * @param {number} yearsElapsed - 模拟中经过的年数
+ * @param {number} realmLevel - 当前境界等级
+ * @returns {number} 当年死亡概率 (0~0.15)
+ */
+export function getDeathProbability(yearsElapsed, realmLevel) {
+  // 前 5 年免疫天机反噬
+  if (yearsElapsed < 5) return 0;
+  const baseChance = 0.01;
+  // 高境界减免：炼气九层减免 40%
+  const realmResist = 1 - (realmLevel || 0) * 0.05;
+  // 超线性增长，30 年后急剧增加
+  const timeFactor = Math.pow((yearsElapsed - 5) / 30, 1.5);
+  const p = baseChance * realmResist * timeFactor;
+  return Math.min(0.15, p);
+}
+
+// ─── 碎片标签匹配 ───
+/**
+ * 从碎片列表中找出与当前场景匹配的记忆碎片
+ * @param {object} scene - 场景对象（需含 tags 字段）
+ * @param {Array} fragments - 记忆碎片列表
+ * @returns {Array} 匹配的碎片列表
+ */
+export function findMatchingInsights(scene, fragments) {
+  const sceneTags = scene?.tags || [];
+  if (!sceneTags.length || !fragments?.length) return [];
+  return fragments.filter(f =>
+    !f.used && f.matchTags?.some(tag => sceneTags.includes(tag))
+  );
+}
+
+// ─── 碎片模板库（根据死因/场景标签产出碎片）───
+const FRAGMENT_TEMPLATES = [
+  { tags: ['npc:chenmo', 'conflict:背叛'], name: '陈墨的背叛征兆', description: '他眼中一闪而过的算计，在你转身时终于露出獠牙。', matchTags: ['npc:chenmo', 'conflict:背叛'] },
+  { tags: ['npc:wanghao', 'combat:切磋'], name: '王浩的剑法破绽', description: '他的剑法刚猛有余，收招时右肋有半息空隙。', matchTags: ['npc:wanghao', 'combat:切磋'] },
+  { tags: ['npc:liufei', 'combat:暗器', 'conflict:对决'], name: '柳飞的暗器习惯', description: '先风刃远程，再近身绞杀——这是他的惯用套路。', matchTags: ['npc:liufei', 'combat:暗器', 'conflict:对决'] },
+  { tags: ['danger:妖兽', 'explore:后山'], name: '后山妖兽出没规律', description: '子时前后，后山深处常有二阶妖兽徘徊。', matchTags: ['danger:妖兽', 'explore:后山'] },
+  { tags: ['explore:洞府', '机遇:功法'], name: '崖壁裂缝中的秘密', description: '后山崖壁上有一处隐蔽裂缝，里面有前人遗留。', matchTags: ['explore:洞府', '机遇:功法'] },
+  { tags: ['机遇:灵泉'], name: '灵泉位置记忆', description: '银灵狐带你找到的那处灵泉，灵气浓度极高。', matchTags: ['机遇:灵泉'] },
+  { tags: ['danger:天机反噬'], name: '天道法则残影', description: '模拟中隐约触碰到的天道法则碎片，令人警醒。', matchTags: ['danger:天机反噬'] },
+  { tags: ['修炼:突破', '机遇:瓶颈'], name: '突破瓶颈的心得', description: '模拟中冲击瓶颈时的感悟，或可复用。', matchTags: ['修炼:突破', '机遇:瓶颈'] },
+];
+
+/**
+ * 根据死亡上下文生成记忆碎片
+ * @param {string} deathCause - 死因
+ * @param {Array} deathSceneTags - 死亡场景的标签
+ * @param {number} simYears - 模拟存活年数
+ * @param {string} grade - 评价等级
+ * @returns {Array} 新生成的碎片列表
+ */
+export function generateDeathFragments(deathCause, deathSceneTags = [], simYears = 0, grade = 'D') {
+  const fragments = [];
+  // 保底产出 1 个碎片
+  // 优先匹配死亡场景标签
+  const matched = FRAGMENT_TEMPLATES.filter(t =>
+    t.matchTags.some(tag => deathSceneTags.includes(tag))
+  );
+  if (matched.length > 0) {
+    const template = matched[Math.floor(Math.random() * matched.length)];
+    fragments.push({
+      id: `frag_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      name: template.name,
+      description: template.description,
+      matchTags: [...template.matchTags],
+      acquiredAt: Date.now(),
+      used: false,
+      source: 'death',
+    });
+  } else {
+    // 通用碎片
+    fragments.push({
+      id: `frag_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+      name: '命运残影',
+      description: `死于${deathCause}，这段经历化为记忆碎片。`,
+      matchTags: ['general'],
+      acquiredAt: Date.now(),
+      used: false,
+      source: 'death',
+    });
+  }
+
+  // S/A 评价额外产出 1 个碎片
+  if ((grade === 'S' || grade === 'A') && Math.random() < 0.7) {
+    const allTemplates = FRAGMENT_TEMPLATES.filter(t =>
+      !fragments.some(f => f.name === t.name)
+    );
+    if (allTemplates.length > 0) {
+      const template = allTemplates[Math.floor(Math.random() * allTemplates.length)];
+      fragments.push({
+        id: `frag_${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+        name: template.name,
+        description: template.description,
+        matchTags: [...template.matchTags],
+        acquiredAt: Date.now(),
+        used: false,
+        source: 'bonus',
+      });
+    }
+  }
+
+  return fragments;
+}
+
+/**
+ * 根据死因生成教训文本
+ * @param {string} deathCause - 死因原文
+ * @returns {string} 教训文本
+ */
+export function getDeathLesson(deathCause) {
+  const cause = deathCause || '';
+  if (cause.includes('寿元耗尽') || cause.includes('坐化')) return '修行须惜时，莫待白头空叹息。';
+  if (cause.includes('陈墨') || cause.includes('背叛')) return '人心叵测，最亲近之人亦须提防。';
+  if (cause.includes('王浩') || cause.includes('剑')) return '剑修之威不可小觑，当先避其锋芒。';
+  if (cause.includes('柳飞') || cause.includes('暗器')) return '暗器难防，须留意对方起手式。';
+  if (cause.includes('妖兽') || cause.includes('兽')) return '妖兽凶猛，实力不足时莫要深入。';
+  if (cause.includes('天机') || cause.includes('反噬')) return '窥探天机，终有代价。';
+  if (cause.includes('坠落') || cause.includes('悬崖')) return '高处不胜寒，行走悬崖须谨慎。';
+  if (cause.includes('伤重') || cause.includes('重伤')) return '当断则断，不可恋战。';
+  return '命运轨迹已现，下次或可避开此劫。';
+}
+
 export const useSimStore = defineStore('sim', () => {
   // ─── 状态 ───
 
@@ -36,6 +161,15 @@ export const useSimStore = defineStore('sim', () => {
 
   /** 死亡原因 */
   const deathCause = ref('');
+
+  /** 死亡教训（P1 新增） */
+  const deathLesson = ref('');
+
+  /** 死亡场景标签（P1 新增） */
+  const deathSceneTags = ref([]);
+
+  /** 本次模拟产出的记忆碎片（P1 新增） */
+  const generatedFragments = ref([]);
 
   /** 模拟中的临时玩家状态（深拷贝副本） */
   const simPlayerState = ref(null);
@@ -177,11 +311,19 @@ export const useSimStore = defineStore('sim', () => {
   }
 
   /**
-   * 结束模拟
+   * 结束模拟（P1：含死亡复盘 + 碎片生成）
    * @param {string} cause - 死亡原因
+   * @param {string[]} sceneTags - 死亡场景标签
+   * @param {string} grade - 评价等级
    */
-  function endSimulation(cause) {
+  function endSimulation(cause, sceneTags = [], grade = 'D') {
     deathCause.value = cause || '寿元耗尽，元神消散于天地之间';
+    deathLesson.value = getDeathLesson(deathCause.value);
+    deathSceneTags.value = sceneTags;
+    // 生成记忆碎片（保底 1 个）
+    generatedFragments.value = generateDeathFragments(
+      deathCause.value, sceneTags, simYears.value, grade
+    );
     isSimulating.value = false;
   }
 
@@ -234,8 +376,23 @@ export const useSimStore = defineStore('sim', () => {
           break;
         case 'insight':
           if (selectedReward.insightId) {
-            restored.simInsights = restored.simInsights || [];
-            restored.simInsights.push(selectedReward.insightId);
+            // P1: 改为写入 memoryFragments（新结构）
+            restored.memoryFragments = restored.memoryFragments || [];
+            // 从 generatedFragments 中找对应碎片
+            const frag = generatedFragments.value.find(f => f.id === selectedReward.insightId);
+            if (frag) {
+              restored.memoryFragments.push({ ...frag });
+            } else {
+              // fallback：生成通用碎片
+              restored.memoryFragments.push({
+                id: selectedReward.insightId,
+                name: '记忆碎片',
+                description: '',
+                matchTags: ['general'],
+                acquiredAt: Date.now(),
+                used: false,
+              });
+            }
           }
           break;
       }
@@ -276,6 +433,9 @@ export const useSimStore = defineStore('sim', () => {
     };
     simYears.value = 0;
     deathCause.value = '';
+    deathLesson.value = '';
+    deathSceneTags.value = [];
+    generatedFragments.value = [];
     simPlayerState.value = null;
     startRealmLevel.value = 0;
     startAge.value = 16;
@@ -289,6 +449,9 @@ export const useSimStore = defineStore('sim', () => {
     simRewards,
     simYears,
     deathCause,
+    deathLesson,
+    deathSceneTags,
+    generatedFragments,
     simPlayerState,
     startRealmLevel,
     startAge,

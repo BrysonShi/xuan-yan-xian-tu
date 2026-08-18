@@ -74,6 +74,8 @@ import { usePlayerStore } from '../stores/playerStore.js';
 import { useSimStore } from '../stores/simStore.js';
 import { storyGraph, endingChoices } from '../data/storyGraph.js';
 import { REALM_TABLE } from '../models/player.js';
+import { getRandomReachableScene } from '../engines/graphTraversalEngine.js';
+import { getDeathProbability } from '../stores/simStore.js';
 import StatusBar from '../components/StatusBar.vue';
 import TextDisplay from '../components/TextDisplay.vue';
 import ChoicePanel from '../components/ChoicePanel.vue';
@@ -153,14 +155,15 @@ function loadScene(sceneId) {
   const scene = storyGraph[sceneId];
   if (!scene) {
     console.error('[Simulation] Scene not found:', sceneId);
-    // 场景不存在，结束模拟
-    handleDeath('命运轨迹断裂，元神消散……');
+    handleDeath('命运轨迹断裂，元神消散……', []);
     return;
   }
   currentSceneId.value = sceneId;
-  // 支持动态文案：text 可以是字符串或函数
+  // P3: 优先使用 simText（命运投影风格），其次用原文
   let sceneText;
-  if (typeof scene.text === 'function') {
+  if (scene.simText) {
+    sceneText = scene.simText;
+  } else if (typeof scene.text === 'function') {
     const realm = simStore.simPlayerState?.realm || '炼气一层';
     const stones = simStore.simPlayerState?.resources?.spiritStones || 0;
     sceneText = scene.text(realm, stones);
@@ -199,7 +202,7 @@ function loadScene(sceneId) {
   if (scene.isDeath) {
     const deathText = scene.deathText || '你陨落于命运推演之中……';
     setTimeout(() => {
-      handleDeath(deathText);
+      handleDeath(deathText, scene.tags || []);
     }, 1500);
     return;
   }
@@ -236,7 +239,7 @@ function handleChoice(opt) {
   // 检查寿终
   if (currentYear.value - 16 >= MAX_SIM_YEARS) {
     setTimeout(() => {
-      handleDeath('寿元耗尽，坐化于天地之间');
+      handleDeath('寿元耗尽，坐化于天地之间', []);
     }, 1000);
     return;
   }
@@ -256,7 +259,7 @@ function handleChoice(opt) {
   }
 }
 
-// ─── 静修推进 ───
+// ─── 静修推进（P1：图遍历引擎 + 天机反噬）───
 function advanceIdle() {
   if (isPaused.value) return;
 
@@ -282,23 +285,32 @@ function advanceIdle() {
   });
   simStore.recordEvent(currentYear.value, '平静修炼');
 
-  // 检查寿终
-  if (currentYear.value - 16 >= MAX_SIM_YEARS) {
-    handleDeath('寿元耗尽，坐化于天地之间');
+  // P1: 天机反噬检查（前5年免疫）
+  const simYearsElapsed = currentYear.value - 16;
+  const realmLevel = simStore.simPlayerState?.realmLevel || 0;
+  const deathProb = getDeathProbability(simYearsElapsed, realmLevel);
+  if (Math.random() < deathProb) {
+    setTimeout(() => {
+      handleDeath('天机反噬，元神被命运之力撕碎', ['danger:天机反噬']);
+    }, 800);
     return;
   }
 
-  // 40%概率触发场景事件
+  // 检查寿终
+  if (simYearsElapsed >= MAX_SIM_YEARS) {
+    setTimeout(() => {
+      handleDeath('寿元耗尽，坐化于天地之间', []);
+    }, 1000);
+    return;
+  }
+
+  // P1: 40%概率触发场景事件（使用图遍历引擎）
   if (Math.random() < 0.4 && simStore.saveSnapshot) {
     const startScene = simStore.saveSnapshot.sceneId;
-    // 从起始场景的几个选项分支中随机选一个
-    const startSceneData = storyGraph[startScene];
-    if (startSceneData && startSceneData.choices && startSceneData.choices.length > 0) {
-      const randChoice = startSceneData.choices[Math.floor(Math.random() * startSceneData.choices.length)];
-      if (randChoice.next) {
-        loadScene(randChoice.next);
-        return;
-      }
+    const nextScene = getRandomReachableScene(startScene, 4, 0.25);
+    if (nextScene && nextScene !== startScene) {
+      loadScene(nextScene);
+      return;
     }
   }
 
@@ -310,15 +322,25 @@ function advanceIdle() {
   }, 1500);
 }
 
-// ─── 死亡处理 ───
-function handleDeath(cause) {
+// ─── 死亡处理（P1：含死亡复盘 + 场景标签传递）───
+function handleDeath(cause, sceneTags = []) {
   eventHistory.value.push({
     year: currentYear.value,
     text: cause,
     isDeath: true,
   });
   simStore.recordEvent(currentYear.value, cause, true);
-  simStore.endSimulation(cause);
+  // 计算评价等级（与 SettlementView 同步）
+  const years = currentYear.value - 16;
+  const startLevel = simStore.startRealmLevel || 0;
+  const endLevel = simStore.simRewards.highestRealmLevel || startLevel;
+  const realmGaps = endLevel - startLevel;
+  let grade = 'D';
+  if (years >= 10 || realmGaps >= 3) grade = 'S';
+  else if (years >= 20 || realmGaps === 2) grade = 'A';
+  else if (realmGaps === 1) grade = 'B';
+  else if (years >= 10) grade = 'C';
+  simStore.endSimulation(cause, sceneTags, grade);
 
   setTimeout(() => {
     router.push('/settlement');

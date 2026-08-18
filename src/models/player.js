@@ -175,10 +175,24 @@ export function getMaxLifespan(player) {
   return realmData ? realmData.lifespan : 100;
 }
 
+/**
+ * 获取角色当前境界的最大记忆碎片槽位（P2 模拟器成长系统）
+ * @param {object} player - 角色数据
+ * @returns {number} 碎片槽位上限
+ */
+export function getMaxMemoryFragmentSlots(player) {
+  const rl = player?.realmLevel || 0;
+  if (rl <= 2) return 5;   // 炼气1-3层
+  if (rl <= 5) return 8;   // 炼气4-6层
+  if (rl <= 8) return 12;  // 炼气7-9层
+  return 16;               // 筑基+
+}
+
 export default {
   createNewPlayer,
   getFinalAttribute,
   isRealmInRange,
   getMaxLifespan,
+  getMaxMemoryFragmentSlots,
   REALM_TABLE,
 };

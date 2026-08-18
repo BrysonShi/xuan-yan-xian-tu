@@ -11,6 +11,15 @@
       :isSimulation="false"
     />
 
+    <!-- 命运改写特效覆盖层（P2） -->
+    <Transition name="fate-rewrite">
+      <div v-if="showFateRewrite" class="fate-rewrite-overlay">
+        <div class="fate-rewrite-text">
+          <p v-for="(line, i) in fateRewriteText.split('\n')" :key="i">{{ line }}</p>
+        </div>
+      </div>
+    </Transition>
+
     <!-- 中部内容区 -->
     <div class="reality-view__content game-scroll" ref="scrollRef">
       <!-- NPC 对话头部（如果有） -->
@@ -97,6 +106,7 @@ import { useSimStore } from '../stores/simStore.js';
 import { REALM_TABLE } from '../models/player.js';
 import { audioManager } from '../utils/audioManager.js';
 import { storyGraph, endingChoices } from '../data/storyGraph.js';
+import { findMatchingInsights } from '../stores/simStore.js';
 import StatusBar from '../components/StatusBar.vue';
 import TextDisplay from '../components/TextDisplay.vue';
 import ChoicePanel from '../components/ChoicePanel.vue';
@@ -111,6 +121,11 @@ const scrollRef = ref(null);
 const menuVisible = ref(false);
 const showChoices = ref(false);
 const eventLog = ref([]);
+
+// ─── P2 预知选项相关 ───
+const foresightOptions = ref([]);   // 🔮 预知选项列表
+const showFateRewrite = ref(false); // 命运改写特效状态
+const fateRewriteText = ref('');    // 命运改写文本
 
 // ─── 场景图驱动的剧情系统 ───
 const storyText = ref('');
@@ -184,6 +199,8 @@ function loadScene(sceneId) {
   currentNpc.value = scene.npc || null;
   highlightWords.value = scene.highlights || [];
   showChoices.value = false;
+  showFateRewrite.value = false;
+  foresightOptions.value = [];
 
   // 播放场景切换音效
   try { audioManager.playTransition(); } catch {}
@@ -200,6 +217,23 @@ function loadScene(sceneId) {
         }
       },
     });
+  }
+
+  // P2: 检查记忆碎片匹配，生成预知选项
+  const playerFragments = playerStore.playerData?.memoryFragments || [];
+  const matched = findMatchingInsights(scene, playerFragments);
+  if (matched.length > 0) {
+    // 为每个匹配碎片生成一个预知选项
+    foresightOptions.value = matched.slice(0, 2).map(frag => ({
+      id: `foresight_${frag.id}`,
+      text: `🔮 ${frag.name}`,
+      desc: `消耗碎片：${frag.name}`,
+      isForesight: true,
+      fragmentId: frag.id,
+      fragmentDesc: frag.description,
+      next: (scene.choices?.[0]?.next) || null, // 预知选项默认走第一个正常选项的路径
+    }));
+    eventLog.value.push(`【命运之丝微颤——你感知到了可能的未来】`);
   }
 
   // 存储选项，等文字播放完再显示
@@ -219,6 +253,28 @@ function handleChoice(opt) {
   currentOptions.value = [];
   eventLog.value.push(`你选择了：${opt.text}`);
 
+  // P2: 预知选项处理（命运改写）
+  if (opt.isForesight && opt.fragmentId) {
+    // 消耗碎片（标记为 used）
+    playerStore.batchUpdate(p => {
+      const frags = p.memoryFragments || [];
+      const frag = frags.find(f => f.id === opt.fragmentId);
+      if (frag) frag.used = true;
+    });
+    // 命运改写特效文本
+    showFateRewrite.value = true;
+    fateRewriteText.value = `「命运的丝线因你的预知而偏移——」\n\n${opt.fragmentDesc || '你避开了命运的陷阱。'}\n\n「你改变了命运。」;
+    eventLog.value.push('【命运改写：预知之力扭转了因果】');
+    // 预知选项也走 next 场景
+    if (opt.next) {
+      setTimeout(() => {
+        showFateRewrite.value = false;
+        loadScene(opt.next);
+      }, 2200);
+      return;
+    }
+  }
+
   // 命运模拟特殊处理
   if (opt.action === 'simulation') {
     router.push('/simulation');
@@ -236,7 +292,8 @@ function handleChoice(opt) {
 // ─── 文字播放完毕回调 ───
 function onTextComplete() {
   if (pendingChoices.value.length > 0) {
-    currentOptions.value = pendingChoices.value;
+    // P2: 将预知选项追加到正常选项后面
+    currentOptions.value = [...pendingChoices.value, ...foresightOptions.value];
     setTimeout(() => { showChoices.value = true; }, 300);
   } else {
     showChoices.value = false;
@@ -254,6 +311,16 @@ const simUnlocked = computed(() => playerStore.playerData?.flags?.sim_unlocked |
 const isInSafeZone = computed(() => {
   const scene = storyGraph[currentSceneId.value];
   return scene?.isSafeZone === true;
+});
+
+// P2: 模拟器成长系统——根据境界解锁功能
+const simFeatures = computed(() => {
+  const rl = playerStore.playerData?.realmLevel || 0;
+  const features = [{ name: '基础模拟', unlocked: true, desc: '从当前节点推演命运' }];
+  if (rl >= 3) features.push({ name: '短期模拟', unlocked: true, desc: '消耗减半，推演10年' });
+  if (rl >= 6) features.push({ name: '碎片扩容', unlocked: true, desc: '碎片槽位 +4' });
+  if (rl >= 9) features.push({ name: '定向模拟', unlocked: false, desc: '筑基后可用' });
+  return features;
 });
 
 // ─── 交互函数 ───
@@ -527,4 +594,47 @@ onMounted(() => {
 .menu-list__item:hover {
   background: rgba(255,255,255,0.04);
 }
+
+/* P2: 命运改写特效覆盖层 */
+.fate-rewrite-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(10, 5, 30, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fate-bg-pulse 2s ease-in-out;
+}
+
+.fate-rewrite-text {
+  max-width: 280px;
+  text-align: center;
+  color: var(--c-gold-light);
+  font-size: var(--fs-base);
+  line-height: 2;
+  letter-spacing: 0.08em;
+  animation: fate-text-glow 1.8s ease-in-out;
+}
+
+.fate-rewrite-text p {
+  margin: 6px 0;
+}
+
+@keyframes fate-bg-pulse {
+  0% { opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes fate-text-glow {
+  0% { text-shadow: 0 0 8px rgba(212, 175, 85, 0.2); transform: scale(0.95); }
+  50% { text-shadow: 0 0 20px rgba(212, 175, 85, 0.6); transform: scale(1.02); }
+  100% { text-shadow: 0 0 8px rgba(212, 175, 85, 0.2); transform: scale(1); }
+}
+
+/* Vue Transition 类 */
+.fate-rewrite-enter-active { animation: fate-bg-pulse 2.2s ease-in-out; }
+.fate-rewrite-leave-active { animation: fate-bg-pulse 0.4s ease-out reverse; }
 </style>
