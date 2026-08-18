@@ -20,7 +20,7 @@ export const usePlayerStore = defineStore('player', () => {
   // ─── 计算属性 ───
 
   /** 当前境界名称 */
-  const realmName = computed(() => playerData.value?.realm || '无');
+  const realmName = computed(() => playerData.value?.realm || '炼气一层');
 
   /** 修为百分比 */
   const cultivationPercent = computed(() => {

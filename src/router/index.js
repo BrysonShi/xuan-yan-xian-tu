@@ -4,6 +4,7 @@
  */
 
 import { createRouter, createWebHistory } from 'vue-router';
+import { usePlayerStore } from '../stores/playerStore.js';
 import { gameStateMachine, GameState } from '../engines/gameStateMachine.js';
 
 /**
@@ -94,12 +95,12 @@ router.beforeEach((to, from, next) => {
 
   // 规则2：需要加载存档的路由，检查是否已加载
   if (to.meta.requiresLoad) {
-    // 简化处理：直接放行（实际应检查playerStore.isLoaded）
-    // const playerStore = usePlayerStore();
-    // if (!playerStore.isLoaded) {
-    //   next('/main-menu');
-    //   return;
-    // }
+    const playerStore = usePlayerStore();
+    if (!playerStore.isLoaded) {
+      console.warn('[Router] 未加载角色数据，重定向到主菜单');
+      next('/main-menu');
+      return;
+    }
   }
 
   next();
