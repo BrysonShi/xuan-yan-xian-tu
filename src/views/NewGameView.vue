@@ -121,6 +121,10 @@ function startAwakening() {
   showWheel.value = true;
 }
 
+function proceedToTalent() {
+  // Enter 键按下后滚动到灵根感应区域（已在新流程中与道号同屏显示，无需操作）
+}
+
 const wheelStyle = computed(() => ({
   transform: `rotate(${spinDeg.value}deg)`,
   transition: isSpinning.value ? 'transform 2.5s cubic-bezier(0.17, 0.67, 0.12, 0.99)' : 'none',
