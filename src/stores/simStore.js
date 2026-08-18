@@ -170,6 +170,9 @@ export const useSimStore = defineStore('sim', () => {
       }
     }
 
+    // 强制触发 Vue 响应式更新（重新赋值整个对象引用）
+    simPlayerState.value = { ...p, resources: { ...p.resources } };
+
     return msgs;
   }
 
