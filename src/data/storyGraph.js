@@ -9,9 +9,9 @@
 
 // ─── 通用结局选项（结局场景复用） ───
 export const endingChoices = [
-  { id: 'A', text: '继续修炼', desc: '去练功场打磨修为', next: 'training_1' },
-  { id: 'B', text: '去后山看看', desc: '听说后山有灵脉', next: 'mountain_1' },
-  { id: 'C', text: '推进主线剧情', desc: '踏上修仙逆袭之路', next: 'ch1_1' },
+  { id: 'A', text: '去练功场继续修炼', desc: '夯实根基，以勤补拙', next: 'training_1' },
+  { id: 'B', text: '去后山碰碰运气', desc: '听说后山新开辟了一处灵脉', next: 'mountain_1' },
+  { id: 'C', text: '想起今日还有入门考核', desc: '晨钟已响，该去丙字院报到了', next: 'ch1_1' },
 ];
 
 // ─── 完整场景图 ───
@@ -36,7 +36,7 @@ export const storyGraph = {
       { id: 'A', text: '深入探查灵光来源', desc: '富贵险中求', next: 'mountain_2a' },
       { id: 'B', text: '谨慎观察，不贸然进入', desc: '先看看周围情况', next: 'mountain_2b' },
     ],
-    onEnter: (ctx) => ctx.applyEffect({ cultivation: 200 }),
+    onEnter: (ctx) => ctx.applyEffect({ cultivation: 100 }),
   },
 
   'mountain_2a': {
@@ -64,7 +64,7 @@ export const storyGraph = {
     npc: null,
     highlights: ['功法', '壁垒', '暴涨'],
     choices: endingChoices,
-    onEnter: (ctx) => ctx.applyEffect({ cultivation: 800 }),
+    onEnter: (ctx) => ctx.applyEffect({ cultivation: 400 }),
   },
 
   'mountain_3b': {
@@ -72,7 +72,7 @@ export const storyGraph = {
     npc: { name: '陈墨', emoji: '🧑‍🦱', title: '外门弟子 · 好友' },
     highlights: ['灵石', '玉简'],
     choices: endingChoices,
-    onEnter: (ctx) => ctx.applyEffect({ spiritStones: 30, cultivation: 300 }),
+    onEnter: (ctx) => ctx.applyEffect({ spiritStones: 20, cultivation: 200 }),
   },
 
   'mountain_3c': {
@@ -81,7 +81,7 @@ export const storyGraph = {
     highlights: ['灵狐', '灵泉', '银色光芒'],
     choices: endingChoices,
     onEnter: (ctx) => {
-      ctx.applyEffect({ cultivation: 600 });
+      ctx.applyEffect({ cultivation: 300 });
       ctx.eventLog.push('【获得伙伴：银灵狐】');
     },
   },
@@ -95,7 +95,7 @@ export const storyGraph = {
       { id: 'A', text: '接受切磋', desc: '以战养战，突破自我', next: 'training_2a' },
       { id: 'B', text: '婉拒，继续修炼', desc: '不喜争斗，专注修炼', next: 'training_2b' },
     ],
-    onEnter: (ctx) => ctx.applyEffect({ cultivation: 200 }),
+    onEnter: (ctx) => ctx.applyEffect({ cultivation: 100 }),
   },
 
   'training_2a': {
@@ -116,7 +116,7 @@ export const storyGraph = {
       { id: 'A', text: '全力冲击瓶颈', desc: '一鼓作气，破！', next: 'training_3c' },
       { id: 'B', text: '稳扎稳打，水到渠成', desc: '不急不躁', next: 'end_steady' },
     ],
-    onEnter: (ctx) => ctx.applyEffect({ cultivation: 300 }),
+    onEnter: (ctx) => ctx.applyEffect({ cultivation: 150 }),
   },
 
   'training_3a': {
@@ -124,7 +124,7 @@ export const storyGraph = {
     npc: { name: '王浩', emoji: '⚔️', title: '外门弟子 · 练气五层' },
     highlights: ['激战', '锤炼'],
     choices: endingChoices,
-    onEnter: (ctx) => ctx.applyEffect({ cultivation: 600, reputation: 5 }),
+    onEnter: (ctx) => ctx.applyEffect({ cultivation: 300, reputation: 5 }),
   },
 
   'training_3b': {
@@ -132,7 +132,7 @@ export const storyGraph = {
     npc: { name: '王浩', emoji: '⚔️', title: '外门弟子 · 练气五层' },
     highlights: ['巧妙', '刮目相看'],
     choices: endingChoices,
-    onEnter: (ctx) => ctx.applyEffect({ cultivation: 500, reputation: 8 }),
+    onEnter: (ctx) => ctx.applyEffect({ cultivation: 250, reputation: 8 }),
   },
 
   'training_3c': {
@@ -140,7 +140,7 @@ export const storyGraph = {
     npc: null,
     highlights: ['瓶颈', '突破', '暴涨'],
     choices: endingChoices,
-    onEnter: (ctx) => ctx.applyEffect({ cultivation: 700 }),
+    onEnter: (ctx) => ctx.applyEffect({ cultivation: 350 }),
   },
 
   // ═══ 结局场景 ═══
@@ -149,7 +149,7 @@ export const storyGraph = {
     npc: null,
     highlights: ['宁静', '感悟'],
     choices: endingChoices,
-    onEnter: (ctx) => ctx.applyEffect({ cultivation: 250 }),
+    onEnter: (ctx) => ctx.applyEffect({ cultivation: 100 }),
   },
 
   'end_steady': {
@@ -157,7 +157,7 @@ export const storyGraph = {
     npc: null,
     highlights: ['根基', '水到渠成'],
     choices: endingChoices,
-    onEnter: (ctx) => ctx.applyEffect({ cultivation: 400 }),
+    onEnter: (ctx) => ctx.applyEffect({ cultivation: 200 }),
   },
 
   // ═══════════════════════════════════════════════════════

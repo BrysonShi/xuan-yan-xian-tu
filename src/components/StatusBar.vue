@@ -142,4 +142,25 @@ watch(() => props.destinyPoints, () => {
 .status-bar--sim .status-bar__res-val {
   color: var(--sim-text);
 }
+
+/* 数值变化动画 */
+.num-change {
+  animation: num-flash 0.45s ease-out;
+}
+
+@keyframes num-flash {
+  0% { transform: scale(1); color: var(--c-gold-light); }
+  30% { transform: scale(1.4); color: #4ade80; text-shadow: 0 0 8px rgba(74, 222, 128, 0.6); }
+  100% { transform: scale(1); color: var(--c-gold-light); text-shadow: none; }
+}
+
+.status-bar--sim .num-change {
+  animation: num-flash-sim 0.45s ease-out;
+}
+
+@keyframes num-flash-sim {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.4); color: #a78bfa; text-shadow: 0 0 8px rgba(167, 139, 250, 0.6); }
+  100% { transform: scale(1); text-shadow: none; }
+}
 </style>
