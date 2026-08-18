@@ -189,16 +189,6 @@ export function getMaxMemoryFragmentSlots(player) {
   return 16;               // 筑基+
 }
 
-export default {
-  createNewPlayer,
-  getFinalAttribute,
-  isRealmInRange,
-  getMaxLifespan,
-  getMaxMemoryFragmentSlots,
-  REALM_TABLE,
-  SPIRIT_ROOT_DATA,
-};
-
 /**
  * 灵根数据定义 — 每种灵根对属性和玩法有实质影响（闭环设计）
  */
@@ -239,4 +229,14 @@ export const SPIRIT_ROOT_DATA = {
     passive: '废材灵根，众人皆叹可惜，殊不知命运另有安排',
     storyHint: '石碑毫无反应。测灵弟子连看都不看你一眼："下一个。"你攥紧了拳头。',
   },
+};
+
+export default {
+  createNewPlayer,
+  getFinalAttribute,
+  isRealmInRange,
+  getMaxLifespan,
+  getMaxMemoryFragmentSlots,
+  REALM_TABLE,
+  SPIRIT_ROOT_DATA,
 };
