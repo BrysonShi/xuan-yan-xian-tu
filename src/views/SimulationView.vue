@@ -136,9 +136,22 @@ function refreshIdleText() {
   idleText.value = idleTexts[Math.floor(Math.random() * idleTexts.length)];
 }
 
-// ─── 模拟上下文中的 applyEffect ───
+// ─── 模拟上下文中的 applyEffect（含六维属性） ───
 function simApplyEffect(effects) {
   const msgs = simStore.applySimEffect(effects);
+  // 六维属性在模拟中也要应用
+  const attrNames = {
+    comprehension: '悟性', luck: '气运', charisma: '魅力',
+    strength: '根骨', agility: '敏捷', spirit: '神识',
+  };
+  for (const [key, label] of Object.entries(attrNames)) {
+    if (effects[key]) {
+      if (simStore.simPlayerState) {
+        simStore.simPlayerState.attributes[key] = (simStore.simPlayerState.attributes[key] || 10) + effects[key];
+      }
+      msgs.push(`${label} +${effects[key]}`);
+    }
+  }
   msgs.forEach(m => simEventLog.value.push(`【${m}】`));
 }
 

@@ -135,7 +135,7 @@ const currentOptions = ref([]);
 const pendingChoices = ref([]);
 const currentSceneId = ref('');
 
-// ─── 修为变化效果函数 ───
+// ─── 修为变化效果函数（含六维属性） ───
 function applyEffect(effects) {
   if (!effects) return;
   const msgs = [];
@@ -159,6 +159,17 @@ function applyEffect(effects) {
     if (effects.reputation) {
       player.resources.reputation += effects.reputation;
       msgs.push(`声望 +${effects.reputation}`);
+    }
+    // 六维属性
+    const attrNames = {
+      comprehension: '悟性', luck: '气运', charisma: '魅力',
+      strength: '根骨', agility: '敏捷', spirit: '神识',
+    };
+    for (const [key, label] of Object.entries(attrNames)) {
+      if (effects[key]) {
+        player.attributes[key] = (player.attributes[key] || 10) + effects[key];
+        msgs.push(`${label} +${effects[key]}`);
+      }
     }
     // 检查突破
     while (player.cultivation >= player.maxCultivation) {
@@ -203,6 +214,18 @@ function loadScene(sceneId) {
     });
   }
 
+  // ─── firstVisitOnly 场景：已探索过则只显示简短提示，隐藏剧情和选项 ───
+  if (scene.firstVisitOnly && !isFirstVisit) {
+    storyText.value = '（此地已探索过，没有新的收获）';
+    currentNpc.value = null;
+    highlightWords.value = [];
+    showChoices.value = false;
+    showFateRewrite.value = false;
+    foresightOptions.value = [];
+    pendingChoices.value = [];
+    return;
+  }
+
   // 支持动态文案：text 可以是字符串或函数
   if (typeof scene.text === 'function') {
     const realm = playerStore.playerData?.realm || '炼气一层';
@@ -228,13 +251,10 @@ function loadScene(sceneId) {
   try { audioManager.autoSceneBgm(scene.tags); } catch {}
 
   // 应用进入场景时的效果（首次访问才给奖励，防止无限刷）
+  // 注：firstVisitOnly 场景已在上方提前 return，此处不会重复触发
   if (scene.onEnter) {
-    const shouldApplyReward = !scene.firstVisitOnly || isFirstVisit;
-    if (!shouldApplyReward) {
-      eventLog.value.push('（此地已探索过，没有新的收获）');
-    }
     scene.onEnter({
-      applyEffect: shouldApplyReward ? applyEffect : () => {},
+      applyEffect: applyEffect,
       eventLog: eventLog.value,
       unlockSim: () => {
         if (playerStore.playerData) {

@@ -5,17 +5,17 @@
 
 import { generateId } from '../utils/helpers.js';
 
-/** 境界配置表（阈值已匹配剧情修为增量） */
+/** 境界配置表 — 每层阈值严格递增，避免一次 gain 跳多层 */
 export const REALM_TABLE = [
-  { level: 0, name: '炼气一层', maxCultivation: 800, lifespan: 100 },
-  { level: 1, name: '炼气二层', maxCultivation: 800, lifespan: 105 },
-  { level: 2, name: '炼气三层', maxCultivation: 1500, lifespan: 110 },
-  { level: 3, name: '炼气四层', maxCultivation: 1500, lifespan: 115 },
-  { level: 4, name: '炼气五层', maxCultivation: 5000, lifespan: 120 },
-  { level: 5, name: '炼气六层', maxCultivation: 8000, lifespan: 125 },
-  { level: 6, name: '炼气七层', maxCultivation: 12000, lifespan: 130 },
-  { level: 7, name: '炼气八层', maxCultivation: 18000, lifespan: 140 },
-  { level: 8, name: '炼气九层', maxCultivation: 25000, lifespan: 150 },
+  { level: 0, name: '炼气一层', maxCultivation: 1000, lifespan: 100 },
+  { level: 1, name: '炼气二层', maxCultivation: 2500, lifespan: 105 },
+  { level: 2, name: '炼气三层', maxCultivation: 5000, lifespan: 110 },
+  { level: 3, name: '炼气四层', maxCultivation: 8000, lifespan: 115 },
+  { level: 4, name: '炼气五层', maxCultivation: 12000, lifespan: 120 },
+  { level: 5, name: '炼气六层', maxCultivation: 17000, lifespan: 125 },
+  { level: 6, name: '炼气七层', maxCultivation: 23000, lifespan: 130 },
+  { level: 7, name: '炼气八层', maxCultivation: 30000, lifespan: 140 },
+  { level: 8, name: '炼气九层', maxCultivation: 40000, lifespan: 150 },
 ];
 
 /** 默认六维属性 */
