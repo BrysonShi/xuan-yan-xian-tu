@@ -52,7 +52,7 @@
 
       <!-- 无事件时的静修提示 -->
       <div v-else-if="!showChoices" class="sim-content__idle">
-        <p class="text-dim">岁月静好，修炼平稳推进中……</p>
+        <p class="sim-content__idle-text text-dim">{{ idleText }}</p>
       </div>
     </div>
 
@@ -106,6 +106,20 @@ const simEventLog = ref([]);  // 供 storyGraph onEnter 使用的日志
 // 最大模拟年数（寿终限制）
 const MAX_SIM_YEARS = 80;
 
+// ─── 静修文案池 ───
+const idleTexts = [
+  '岁月静好，修炼平稳推进中……',
+  '你在山涧旁打坐，灵气如丝般渗入经脉。',
+  '一只灵蝶停在肩头，片刻后又翩然飞去。',
+  '夜深了，月光透过窗棂洒在蒲团上，灵力缓缓流转。',
+  '你在竹林中练剑，剑意虽浅，却有一丝锐意初成。',
+  '坊市传来消息，近日有散修在青云山脉发现了灵脉踪迹。',
+  '修炼之余，你翻阅从藏经阁借来的残卷，若有所悟。',
+  '山间雾气渐浓，灵气似乎也浓厚了几分。',
+  '远处传来鹤鸣，那是内门长老的灵宠。',
+  '你在溪边洗濯，水中隐约映出自己的倒影——比入门时沉稳了许多。',
+];
+
 // ─── 计算属性（使用模拟中的临时玩家状态）───
 const playerName = computed(() => simStore.simPlayerState?.name || playerStore.playerData?.name || '无名散修');
 const realmName = computed(() => simStore.simPlayerState?.realm || '炼气一层');
@@ -113,6 +127,12 @@ const cultivation = computed(() => simStore.simPlayerState?.cultivation || 0);
 const maxCultivation = computed(() => simStore.simPlayerState?.maxCultivation || 100);
 const spiritStones = computed(() => simStore.simPlayerState?.resources?.spiritStones || 0);
 const destinyPoints = computed(() => simStore.simPlayerState?.resources?.destinyPoints || 0);
+
+// ─── 随机静修文案 ───
+const idleText = ref(idleTexts[0]);
+function refreshIdleText() {
+  idleText.value = idleTexts[Math.floor(Math.random() * idleTexts.length)];
+}
 
 // ─── 模拟上下文中的 applyEffect ───
 function simApplyEffect(effects) {
@@ -220,6 +240,7 @@ function handleChoice(opt) {
   } else {
     // 没有下一个场景，继续静修
     currentEvent.value = null;
+    refreshIdleText();
     setTimeout(() => {
       advanceIdle();
     }, 1000);
@@ -229,6 +250,9 @@ function handleChoice(opt) {
 // ─── 静修推进 ───
 function advanceIdle() {
   if (isPaused.value) return;
+
+  // 刷新静修文案
+  refreshIdleText();
 
   // 静修一年
   currentYear.value += 1;
@@ -457,6 +481,17 @@ onMounted(() => {
   text-align: center;
   padding: var(--s-3xl) var(--s-lg);
   font-size: var(--fs-sm);
+}
+
+.sim-content__idle-text {
+  animation: idle-fade-in 0.8s ease-out;
+  font-style: italic;
+  line-height: 1.8;
+}
+
+@keyframes idle-fade-in {
+  0% { opacity: 0; transform: translateY(8px); }
+  100% { opacity: 1; transform: translateY(0); }
 }
 
 /* 选项区 */
