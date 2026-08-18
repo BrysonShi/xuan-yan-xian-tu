@@ -158,10 +158,19 @@ function loadScene(sceneId) {
     return;
   }
   currentSceneId.value = sceneId;
-  storyText.value = scene.text;
+  // 支持动态文案：text 可以是字符串或函数
+  let sceneText;
+  if (typeof scene.text === 'function') {
+    const realm = simStore.simPlayerState?.realm || '炼气一层';
+    const stones = simStore.simPlayerState?.resources?.spiritStones || 0;
+    sceneText = scene.text(realm, stones);
+  } else {
+    sceneText = scene.text;
+  }
+  storyText.value = sceneText;
   highlightWords.value = scene.highlights || [];
   showChoices.value = false;
-  currentEvent.value = { description: scene.text };
+  currentEvent.value = { description: sceneText };
 
   // 清空场景日志
   simEventLog.value = [];
@@ -172,7 +181,7 @@ function loadScene(sceneId) {
   }
 
   // 记录场景事件
-  const sceneLabel = scene.npc ? `${scene.npc.name}：${scene.text.substring(0, 30)}…` : scene.text.substring(0, 50) + '…';
+  const sceneLabel = scene.npc ? `${scene.npc.name}：${sceneText.substring(0, 30)}…` : sceneText.substring(0, 50) + '…';
   simStore.recordEvent(currentYear.value, sceneLabel);
 
   // 将 simEventLog 中的消息也记录到历史
@@ -183,7 +192,7 @@ function loadScene(sceneId) {
   // 记录到前端展示
   eventHistory.value.push({
     year: currentYear.value,
-    text: scene.text.substring(0, 60) + (scene.text.length > 60 ? '…' : ''),
+    text: sceneText.substring(0, 60) + (sceneText.length > 60 ? '…' : ''),
   });
 
   // 检查是否是死亡场景

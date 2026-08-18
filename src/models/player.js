@@ -121,7 +121,7 @@ export function createNewPlayer(name, options = {}) {
     flags: {
       personality: 'calm',
       chapter: 1,
-      sim_unlocked: true,
+      sim_unlocked: false,
       first_sim_done: false,
     },
     achievements: [],

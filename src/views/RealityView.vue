@@ -65,9 +65,9 @@
         <span class="nav-btn__icon">🏆</span>
         <span class="nav-btn__label">成就</span>
       </button>
-      <button class="nav-btn nav-btn--primary" @click="startSimulation">
-        <span class="nav-btn__icon">🔮</span>
-        <span class="nav-btn__label">命运模拟</span>
+      <button class="nav-btn nav-btn--primary" @click="startSimulation" :disabled="!simUnlocked">
+        <span class="nav-btn__icon">{{ simUnlocked ? '🔮' : '🔒' }}</span>
+        <span class="nav-btn__label">{{ simUnlocked ? '命运模拟' : '未解锁' }}</span>
       </button>
       <button class="nav-btn" @click="menuVisible = true">
         <span class="nav-btn__icon">☰</span>
@@ -173,7 +173,14 @@ function loadScene(sceneId) {
     return;
   }
   currentSceneId.value = sceneId;
-  storyText.value = scene.text;
+  // 支持动态文案：text 可以是字符串或函数
+  if (typeof scene.text === 'function') {
+    const realm = playerStore.playerData?.realm || '炼气一层';
+    const stones = playerStore.playerData?.resources?.spiritStones || 0;
+    storyText.value = scene.text(realm, stones);
+  } else {
+    storyText.value = scene.text;
+  }
   currentNpc.value = scene.npc || null;
   highlightWords.value = scene.highlights || [];
   showChoices.value = false;
@@ -186,6 +193,12 @@ function loadScene(sceneId) {
     scene.onEnter({
       applyEffect,
       eventLog: eventLog.value,
+      unlockSim: () => {
+        if (playerStore.playerData) {
+          playerStore.batchUpdate(p => { p.flags.sim_unlocked = true; });
+          eventLog.value.push('【命运模拟器已解锁！底部导航栏可进入模拟】');
+        }
+      },
     });
   }
 
@@ -237,6 +250,7 @@ const cultivation = computed(() => playerStore.playerData?.cultivation || 0);
 const maxCultivation = computed(() => playerStore.playerData?.maxCultivation || 100);
 const spiritStones = computed(() => playerStore.playerData?.resources?.spiritStones || 0);
 const destinyPoints = computed(() => playerStore.playerData?.resources?.destinyPoints || 0);
+const simUnlocked = computed(() => playerStore.playerData?.flags?.sim_unlocked || false);
 
 // ─── 交互函数 ───
 function skipTyping() {
@@ -244,6 +258,10 @@ function skipTyping() {
 }
 
 function startSimulation() {
+  if (!simUnlocked.value) {
+    eventLog.value.push('【命运模拟器尚未解锁】');
+    return;
+  }
   // 检查灵石
   if (playerStore.playerData.resources.spiritStones < 10) {
     eventLog.value.push('【灵石不足，无法启动命运模拟】');
