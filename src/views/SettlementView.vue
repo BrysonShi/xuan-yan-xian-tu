@@ -77,6 +77,12 @@
         >
           {{ selectedReward !== null ? '确认带回' : '请选择一项奖励' }}
         </button>
+        <button
+          class="btn btn--ghost settlement-view__skip"
+          @click="skipReward"
+        >
+          放弃奖励，直接返回
+        </button>
       </div>
     </div>
   </div>
@@ -109,7 +115,8 @@ const grade = computed(() => {
   const endLevel = simStore.simRewards.highestRealmLevel || startLevel;
   const realmGaps = endLevel - startLevel;
 
-  if (years < 20) return 'D';
+  if (years < 10) return 'D';
+  if (years < 20 && realmGaps <= 0) return 'C';
   if (realmGaps <= 0) return 'C';
   if (realmGaps === 1) return 'B';
   if (realmGaps === 2) return 'A';
@@ -211,6 +218,13 @@ function confirmReward() {
   simStore.restoreAndMerge(reward, playerStore);
   simStore.reset();
 
+  router.push('/reality');
+}
+
+function skipReward() {
+  // 放弃奖励，仍然恢复存档但不合并任何奖励
+  simStore.restoreAndMerge(null, playerStore);
+  simStore.reset();
   router.push('/reality');
 }
 
@@ -434,5 +448,18 @@ onMounted(() => {
   padding: 14px;
   font-size: var(--fs-lg);
   letter-spacing: 0.1em;
+}
+
+.settlement-view__skip {
+  width: 100%;
+  margin-top: var(--s-md);
+  padding: 10px;
+  font-size: var(--fs-sm);
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.settlement-view__skip:hover {
+  opacity: 1;
 }
 </style>
