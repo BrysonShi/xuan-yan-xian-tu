@@ -99,7 +99,12 @@ export const storyGraph = {
     npc: null,
     highlights: ['功法', '壁垒', '暴涨'],
     choices: endingChoices,
-    onEnter: (ctx) => ctx.applyEffect({ cultivation: 400 }),
+    onEnter: (ctx) => {
+      const comp = ctx.playerAttributes?.comprehension || 10;
+      const bonus = comp >= 14 ? 450 : comp >= 12 ? 400 : 350;
+      const compGain = comp >= 12 ? 2 : 1;
+      ctx.applyEffect({ cultivation: bonus, comprehension: compGain });
+    },
   },
 
   'mountain_3b': {
@@ -174,17 +179,27 @@ export const storyGraph = {
     npc: { name: '王浩', emoji: '⚔️', title: '外门弟子 · 练气五层' },
     highlights: ['激战', '锤炼'],
     choices: endingChoices,
-    onEnter: (ctx) => ctx.applyEffect({ cultivation: 300, reputation: 5 }),
+    onEnter: (ctx) => {
+      const str = ctx.playerAttributes?.strength || 10;
+      const bonus = str >= 14 ? 350 : 300;
+      const strGain = str >= 12 ? 2 : 1;
+      ctx.applyEffect({ cultivation: bonus, reputation: 5, strength: strGain });
+    },
   },
 
   'training_3b': {
     firstVisitOnly: true,
     tags: ['npc:wanghao', 'combat:切磋'],
     text: '你不再硬接，而是侧身闪避，等王浩一剑刺空、旧力已尽之时——\n\n你并指如剑，灵气凝聚于指尖，轻点他手腕！王浩长剑脱手，一脸震惊。\n\n「你……这是四两拨千斤的路子？好巧妙的功夫！」王浩抱拳，心悦诚服。\n\n围观的弟子纷纷点头，对你刮目相看。',
-    npc: { name: '王浩', emoji: '⚔️', title: '外门弟子 · 练气五层' },
+    npc: { name: '王浩', emoji: '️', title: '外门弟子 · 练气五层' },
     highlights: ['巧妙', '刮目相看'],
     choices: endingChoices,
-    onEnter: (ctx) => ctx.applyEffect({ cultivation: 250, reputation: 8 }),
+    onEnter: (ctx) => {
+      const agi = ctx.playerAttributes?.agility || 10;
+      const comp = ctx.playerAttributes?.comprehension || 10;
+      const bonus = (agi >= 12 || comp >= 12) ? 300 : 250;
+      ctx.applyEffect({ cultivation: bonus, reputation: 8, agility: agi >= 12 ? 2 : 1 });
+    },
   },
 
   'training_3c': {
@@ -195,7 +210,11 @@ export const storyGraph = {
     npc: null,
     highlights: ['瓶颈', '突破', '暴涨'],
     choices: endingChoices,
-    onEnter: (ctx) => ctx.applyEffect({ cultivation: 350 }),
+    onEnter: (ctx) => {
+      const spi = ctx.playerAttributes?.spirit || 10;
+      const bonus = spi >= 14 ? 400 : spi >= 12 ? 350 : 300;
+      ctx.applyEffect({ cultivation: bonus, spirit: spi >= 12 ? 2 : 1 });
+    },
   },
 
   // ═══ 结局场景 ═══
@@ -223,12 +242,24 @@ export const storyGraph = {
 
   'ch1_1': {
     tags: ['explore:宗门', 'npc:考官'],
-    text: '青云山脉笼罩在薄薄的晨雾中，山道上蜿蜒着数百名前来入门考核的少年少女。你站在队伍中间，攥着手中那张皱巴巴的推荐帖——那是村长花了大半年积蓄，从一位路过的散修手中买来的。\n\n"下一个。"测试灵根的法阵前，一位面无表情的内门弟子不耐烦地挥手。你走上前，将双手按在冰凉的法阵上。法阵嗡鸣一声，亮起四道微弱的光芒——金、木、水、火，四色交织，暗淡得几乎要熄灭。\n\n"四灵根。伪灵根。"记录弟子头也不抬，在玉简上划了一笔，"丙字院。"\n\n身后传来窃窃私语："四灵根也来？修炼到死也炼不了气。"你攥紧了拳头，指甲嵌进肉里。',
+    text: (realm, stones, ctx) => {
+      const rootType = ctx?.spiritRootType || '伪灵根';
+      const rootDescriptions = {
+        '天灵根': { text: '一道刺目的金光冲天而起，测灵石碑嗡嗡震颤，记录弟子猛地站起身："天、天灵根！"', stigma: '' },
+        '地灵根': { text: '石碑亮起三色凝实光芒，灵气化为实质环绕。记录弟子点头："地灵根，上等资质。"', stigma: '' },
+        '变异灵根': { text: '石碑光芒忽明忽暗，最终化为一道紫色雷纹。记录弟子皱眉："变异灵根……记录。"', stigma: '' },
+        '真灵根': { text: '石碑亮起两道光芒，平稳而扎实。记录弟子淡淡道："真灵根，丙字院。"', stigma: '' },
+        '伪灵根': { text: '法阵嗡鸣一声，亮起四道微弱的光芒——金、木、水、火，四色交织，暗淡得几乎要熄灭。"四灵根。伪灵根。"记录弟子头也不抬，在玉简上划了一笔，"丙字院。"', stigma: '身后传来窃窃私语："四灵根也来？修炼到死也炼不了气。"你攥紧了拳头，指甲嵌进肉里。' },
+        '废品灵根': { text: '石碑毫无反应。测灵弟子连看都不看你一眼："下一个。"', stigma: '身后传来嗤笑声。你紧了拳头，指甲嵌进肉里。' },
+      };
+      const desc = rootDescriptions[rootType] || rootDescriptions['伪灵根'];
+      return `青云山脉笼罩在薄薄的晨雾中，山道上蜿蜒着数百名前来入门考核的少年少女。你站在队伍中间，攥着手中那张皱巴巴的推荐帖——那是村长花了大半年积蓄，从一位路过的散修手中买来的。\n\n"下一个。"测试灵根的法阵前，一位面无表情的内门弟子不耐烦地挥手。你走上前，将双手按在冰凉的法阵上。\n\n${desc.text}\n\n${desc.stigma}`;
+    },
     npc: null,
-    highlights: ['四灵根', '伪灵根', '丙字院', '推荐帖'],
+    highlights: ['灵根测试', '丙字院', '推荐帖'],
     choices: [
-      { id: 'A', text: '默默记住这些嘲笑你的人', desc: '隐忍不发，以待来日', next: 'ch1_2' },
-      { id: 'B', text: '无所谓，专注于自己的路', desc: '淡然处之，心无旁骛', next: 'ch1_2' },
+      { id: 'A', text: '默默记住这些嘲笑你的人', desc: '隐忍不发，以待来日', next: 'ch1_2', minAttr: { charisma: 8 } },
+      { id: 'B', text: '无所谓，专注于自己的路', desc: '淡然处之，心无旁骛', next: 'ch1_2', minAttr: { comprehension: 8 } },
     ],
     onEnter: (ctx) => { ctx.applyEffect({ cultivation: 200 }); ctx.eventLog.push('【第一章·入门】'); },
   },

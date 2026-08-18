@@ -256,6 +256,7 @@ function loadScene(sceneId) {
     scene.onEnter({
       applyEffect: applyEffect,
       eventLog: eventLog.value,
+      playerAttributes: playerStore.playerData?.attributes || {},
       unlockSim: () => {
         if (playerStore.playerData) {
           playerStore.batchUpdate(p => { p.flags.sim_unlocked = true; });
@@ -338,8 +339,28 @@ function handleChoice(opt) {
 // ─── 文字播放完毕回调 ───
 function onTextComplete() {
   if (pendingChoices.value.length > 0) {
+    // 六维属性判定：检查选项的 minAttr 需求
+    const playerAttrs = playerStore.playerData?.attributes || {};
+    const attrLabels = {
+      comprehension: '悟性', luck: '气运', charisma: '魅力',
+      strength: '根骨', agility: '敏捷', spirit: '神识',
+    };
+    const resolvedOptions = pendingChoices.value.map(opt => {
+      if (!opt.minAttr) return { ...opt, enabled: true };
+      const failures = Object.entries(opt.minAttr)
+        .filter(([key, val]) => (playerAttrs[key] || 10) < val)
+        .map(([key, val]) => `${attrLabels[key] || key}≥${val}`);
+      if (failures.length > 0) {
+        return {
+          ...opt,
+          enabled: false,
+          disabledReason: `需要 ${failures.join('、')}`,
+        };
+      }
+      return { ...opt, enabled: true };
+    });
     // P2: 将预知选项追加到正常选项后面
-    currentOptions.value = [...pendingChoices.value, ...foresightOptions.value];
+    currentOptions.value = [...resolvedOptions, ...foresightOptions.value];
     setTimeout(() => { showChoices.value = true; }, 300);
   } else {
     showChoices.value = false;
